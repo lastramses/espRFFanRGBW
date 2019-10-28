@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<link href='style.css' rel='stylesheet' type='text/css'>
+	
+	<title>esp RF FAN Control</title>
+	<script>
+	function btnClick(typeFan,cmdFan){
+		xmlhttp =new XMLHttpRequest();
+		xmlhttp.open("POST","/FanCmdReq",true);
+		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xmlhttp.send(typeFan+"="+cmdFan);
+		xmlhttp.onreadystatechange = function(){
+			if(xmlhttp.readyState == 4 && xmlhttp.status==300){
+				var xmlResult = xmlhttp.responseText;
+				console.log("xmlhttp=" + xmlResult);
+			}else
+				console.log("xmlResult.status="+xmlhttp.status);
+		}
+	}
+	function openNav() {
+		document.getElementById("mySidebar").style.width = "250px";
+		document.getElementById("main").style.marginLeft = "250px";
+	}
+	/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+	function closeNav() {
+		document.getElementById("mySidebar").style.width = "0";
+		document.getElementById("main").style.marginLeft = "0";
+	}
+	</script>
+</head>
+
+<body style = "background-color: #0090c1">
+	<div id="mySidebar" class="sidebar">
+		<a href="javascript:void(0)" class="navCloseBtn" onclick="closeNav()">&times;</a>
+		<a href="index.html">Home</a>
+		<a href="rgb.html">RGB</a>
+		<a href="settings.html">Settings</a>
+		<a href="info.html">Info</a>
+	</div>
+	<div id="main">
+		<button class="navOpenBtn" onclick="openNav()">&#9776;</button>
+		<br><center>
+		
+		<table cellpadding="5" border="1"><tbody>
+		<tr><td>Harbor Breeze<br>Living Room</td>
+		<td><button class="genButton" onclick="btnClick('HarborBreezeReq','Light')">Light</button><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanOff')">Fan Off</button><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanReverse')">Fan Reverse</button><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanLow')">Fan Low</button><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanMedium')">Fan Medium</button><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanHigh')">Fan High</button><br>
+		<tr><td>Casablanca<br>Bedroom</td>
+		<td><button class="genButton" onclick="btnClick('CasablancaReq','Light')">Light</button><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanOff')">Fan Off</button><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanReverse')">Fan Reverse</button><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanLow')">Fan Low</button><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanMedium')">Fan Medium</button><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanHigh')">Fan High</button><br>
+		</tbody></table>
+		</center>
+	</div>
+</body>
+</html>

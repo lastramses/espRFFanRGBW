@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <script src="iro.min.js"></script>
+      <link href='style.css' rel='stylesheet' type='text/css'>
+  </head>
+  <body><center>
+      <div class="colorPicker"></div>
+	  </center>
+  </body>
+</html>
+
+<script>
+var connection = new WebSocket('ws://' + location.hostname + ':81/rgb.html');
+var colorPicker;
+connection.onopen = function () {
+  console.log('WebSocket Connect ');
+};
+connection.onerror = function (error) {
+  console.log('WebSocket Error ', error);
+};
+connection.onclose = function () {
+  console.log('WebSocket connection closed');
+};
+connection.onmessage = function (e) {
+  var colourArgument = new iro.Color(e.data);
+  console.log('WebSocket Data ', e);
+  // Create a new color picker instance
+  // https://iro.js.org/guide.html#getting-started
+  var colorPicker = new iro.ColorPicker(".colorPicker", {
+    // color picker options
+    // Option guide: https://iro.js.org/guide.html#color-picker-options
+    width: 700,
+    color: colourArgument,
+    borderWidth: 1,
+    borderColor: "#ffffff",
+    wheelLightness: false,
+  });
+  // https://iro.js.org/guide.html#color-picker-events
+  colorPicker.on(["color:change"], function(color){
+    // Show the current color in different formats
+    // Using the selected color: https://iro.js.org/guide.html#selected-color-api
+    connection.send(color.hexString);
+  });
+};
+</script>
