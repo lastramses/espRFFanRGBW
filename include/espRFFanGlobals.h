@@ -3,10 +3,10 @@
 
 #include <includes.h>
 
-#define pinRED 5 // D1 RGBW Red Channel
-#define pinGREEN 4 // D2 RGBW Green Channel
-#define pinBLUE 0 // D3 RGBW Blue Channel
-#define pinWHITE 2 // D4 RGBW White Channel
+#define pinWHITE 5 // D1 RGBW White Channel
+#define pinBLUE 4 // D2 RGBW Blue Channel
+#define pinGREEN 0 // D3 RGBW Green Channel
+#define pinRED 2 // D4 RGBW Red Channel
 #define pinRFSend 14 // D5, pwm out tx pin
 #define pinIFTTT 12 // D6, pwm input to send an ifttt
 #define pinRFLight 13 // D7, digital input to toggle light

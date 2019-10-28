@@ -2,48 +2,7 @@
 #include <espRFFanGlobals.h>
 #include <HttpServerHandles.h>
 
-void httpServerHandleRoot() {
-  String mainPage;
-  mainPage += "<!DOCTYPE html><html lang=\"en\">";
-  mainPage += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />";
-  mainPage += "<style>";
-  mainPage += ".button { border: 1; background: #d6edff; color: #001011; text-align: center; padding: 15px15px; font-size: 20px; margin: 1px; border-radius:15%}";
-  mainPage += "</style></head>";
-  mainPage += "<title>esp RF FAN Control</title>";
-  mainPage += "<body bgcolor=#0496ff>";
-  mainPage += "<center>";
-  mainPage += "<form action=\"FanCmdReq\" method=\"post\">";
-  mainPage += "<table border=1 cellpadding=5>";
-  mainPage += "<tr><td>Harbor Breeze<br>Living Room</td><td>";
-  mainPage += "<button class=\"button\" name=\"HarborBreezeReq\" value=\"Light\">Light</button><br>";
-  mainPage += "<button class=\"button\" name=\"HarborBreezeReq\" value=\"FanOff\">Fan Off</button><br>";
-  mainPage += "<button class=\"button\" name=\"HarborBreezeReq\" value=\"FanReverse\">Fan Reverse</button><br>";
-  mainPage += "<button class=\"button\" name=\"HarborBreezeReq\" value=\"FanLow\">Fan Low</button><br>";
-  mainPage += "<button class=\"button\" name=\"HarborBreezeReq\" value=\"FanMedium\">Fan Medium</button><br>";
-  mainPage += "<button class=\"button\" name=\"HarborBreezeReq\" value=\"FanHigh\">Fan High</button>";
-  mainPage += "</td></tr>";
-  mainPage += "<tr><td>Casablanca<br>Bedroom</td><td>";
-  mainPage += "<button class=\"button\" name=\"CasablancaReq\" value=\"Light\">Light</button><br>";
-  mainPage += "<button class=\"button\" name=\"CasablancaReq\" value=\"FanOff\">Fan Off</button><br>";
-  mainPage += "<button class=\"button\" name=\"CasablancaReq\" value=\"FanReverse\">Fan Reverse</button><br>";
-  mainPage += "<button class=\"button\" name=\"CasablancaReq\" value=\"FanLow\">Fan Low</button><br>";
-  mainPage += "<button class=\"button\" name=\"CasablancaReq\" value=\"FanMedium\">Fan Medium</button><br>";
-  mainPage += "<button class=\"button\" name=\"CasablancaReq\" value=\"FanHigh\">Fan High</button><br>";
-  mainPage += "</td></tr>";
-  mainPage += "</table></form></center></body></html>";
-  httpServer.sendHeader("Connection", "close");
-  httpServer.send(200, "text/html", mainPage);   // Send HTTP status 200 (Ok) and send some text to the browser/client
-  stdOut("req from " + httpServer.client().remoteIP().toString() + ", root page");
-}
-
 void httpServerHandleFanCmdReq(){
-  /*String message ="";
-  for (int i = 0; i < httpServer.args(); i++) {
-  message += "Arg no " + String(i) + ": """;
-  message += httpServer.argName(i) + """ = """;
-  message += httpServer.arg(i) + """\n";
-}
-stdOut(message);*/
 if (httpServer.hasArg("HarborBreezeReq")==true){
   if (httpServer.arg("HarborBreezeReq")=="Light")
     fanHarborBreeze.sendCmd(FanLight);
@@ -88,25 +47,41 @@ if (httpServer.hasArg("HarborBreezeReq")==true){
 stdOut("req from " + httpServer.client().remoteIP().toString() + ", Pwr Req");
 }
 
-void httpServerHandleFileList(){
-  String path = "/";
-  String directoryList = "File List<br>[";
-  Dir directoryEntry = SPIFFS.openDir(path);
-
-  while (directoryEntry.next()) {
-    File fileElement = directoryEntry.openFile("r");
-    if (directoryList != "[")
-      directoryList += "<br>";
-    directoryList += " " + String(fileElement.name()).substring(1);
-    directoryList += "    ";
-    directoryList += String(fileElement.size());
-    fileElement.close();
+void httpServerHandleGetData(){
+  if(httpServer.hasArg("fileList")==true){
+    String jsonFileList = "{\"espData\":[{\"Field\":\"File Name\",\"Data\":\"Size\"},";
+    Dir directoryEntry = SPIFFS.openDir("/");
+    while (directoryEntry.next()) {
+      File fileElement = directoryEntry.openFile("r");
+      jsonFileList += "{\"Field\":\"" + String(fileElement.name()).substring(1) + "\",\"Data\":\"" + String(fileElement.size()) + "\"},";
+      fileElement.close();
+    }
+    jsonFileList.remove(jsonFileList.length()-1,1); //remove last ","
+    jsonFileList += "]}";
+    httpServer.send(200, "text/html", jsonFileList);
+  }else if(httpServer.hasArg("deviceData")==true){
+    String jsonDeviceData="{\"espData\":[{\"Field\":\"Host Name\",\"Data\":\"" + espHost + "\"},"
+    "{\"Field\":\"Device IP\",\"Data\":\"" + WiFi.localIP().toString() + "\"},"
+    "{\"Field\":\"Device MAC Address\",\"Data\":\"" + WiFi.macAddress() + "\"},"
+    "{\"Field\":\"WiFi RSSI\",\"Data\":\"" + String(WiFi.RSSI()) + "\"},"
+    "{\"Field\":\"Free Heap\",\"Data\":\"" + String(ESP.getFreeHeap()) + "\"},"
+    "{\"Field\":\"Core Version\",\"Data\":\"" + ESP.getCoreVersion() + "\"},"
+    "{\"Field\":\"CPU Flash Frequency\",\"Data\":\"" + String(ESP.getCpuFreqMHz()) + "\"},"
+    "{\"Field\":\"Flash Chip ID\",\"Data\":\"" + String(ESP.getFlashChipId()) + "\"},"
+    "{\"Field\":\"Flash Chip Size\",\"Data\":\"" + String(ESP.getFlashChipSize()) + "\"},"
+    "{\"Field\":\"Flash Chip Real Size\",\"Data\":\"" + String(ESP.getFlashChipRealSize()) + "\"},"
+    "{\"Field\":\"Free Sketch Size\",\"Data\":\"" + String(ESP.getFreeSketchSpace()) + "\"},"
+    "{\"Field\":\"Sketch Size\",\"Data\":\"" + String(ESP.getSketchSize()) + "\"},"
+    "{\"Field\":\"Sketch MD5\",\"Data\":\"" + String(ESP.getSketchMD5()) + "\"},"
+    "{\"Field\":\"Last Reset Reason\",\"Data\":\"" + String(ESP.getResetReason()) + "\"}]}";
+    httpServer.send(200, "text/html", jsonDeviceData);
+  }else if(httpServer.hasArg("deviceSSID")==true){
+    String jsonDeviceData="{\"espData\":[{\"Field\":\"confSSID\",\"Data\":\"\"},"
+    "{\"Field\":\"confPW\",\"Data\":\"\"},"
+    "{\"Field\":\"confIFTTT\",\"Data\":\"\"},"
+    "{\"Field\":\"confMACAddr\",\"Data\":\"" + WiFi.macAddress() + "\"}]}";
+    httpServer.send(200, "text/html", jsonDeviceData);
   }
-
-  directoryList += "<br>]";
-  httpServer.send(200, "text/html", directoryList);
-  stdOut("req from " + httpServer.client().remoteIP().toString() + ", file list page");
-  stdOut(directoryList);
 }
 
 void httpServerHandleFileUpload(){
@@ -189,48 +164,6 @@ void httpServerHandleSaveSSID(){
   httpServer.send(303);
 }
 
-void httpServerHandleDevice(){
-  String mainPage;
-  mainPage += "<!DOCTYPE html><html lang=\"en\">";
-  mainPage += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /></head>";
-  mainPage += "<title>" + espHost + "Device Settings/Details</title>";
-  mainPage += "<body bgcolor=#576066><p>ESP8266 RFFan</p>";
-  mainPage += "<form action=\"saveSSID\" method=\"post\">";
-  mainPage += "<table border=1 cellpadding=5>";
-  mainPage += "<tr><td>Device MAC</td><td><input type=\"text\" class=inputBox name=\"confMACAddr\" value=\"" + WiFi.macAddress() + "\"/></td></tr>";
-  mainPage += "<tr><td>IFTTT Key</td><td><input type=\"text\" class=inputBox name=\"confIFTTT\" /></td></tr>";
-  mainPage += "<tr><td colspan=2>Connect to SSID</td></tr>";
-  mainPage += "<tr><td>SSID</td><td><input type=\"text\" class=inputBox name=\"confSSID\"/></td></tr>";
-  mainPage += "<tr><td>passwod</td><td><input type=\"text\" class=inputBox name=\"confPW\"/></td></tr>";
-  mainPage += "<tr><td colspan=2><center><button name=\"saveSSID\" value=\"Save\"><button name=\"cancelSSID\" value=\"Cancel\"></center></td></tr>";
-  mainPage += "</table></form>";
-  mainPage += "<br>";
-  mainPage += "<table border=1 cellpadding=5>";
-  mainPage += "<tr><td>IP</td><td>" + WiFi.localIP().toString() + "</td><tr></tr>";
-  mainPage += "<tr><td>MAC</td><td>" + WiFi.macAddress() + "</td><tr></tr>";
-  mainPage += "<tr><td>WiFi RSSI</td><td>" + String(WiFi.RSSI()) + "</td><tr></tr>";
-  mainPage += "<tr><td>uptime</td><td>-</td><tr></tr>";
-  mainPage += "<tr><td>load</td><td>-</td><tr></tr>";
-  mainPage += "<tr><td>free heap</td><td>" + String(ESP.getFreeHeap()) + "</td><tr></tr>";
-  mainPage += "<tr><td>last reset reason</td><td>" + String(ESP.getResetReason()) + "</td><tr></tr>";
-  mainPage += "<tr><td>reset command</td><td>-</td><tr></tr>";
-  mainPage += "<tr><td>Chip ID</td><td>" + String(ESP.getFlashChipId()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Chip core version</td><td>" + ESP.getCoreVersion() + "</td><tr></tr>";
-  mainPage += "<tr><td>Chip MHz</td><td>" + String(ESP.getCpuFreqMHz()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Flash Chip id</td><td>" + String(ESP.getFlashChipId()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Flash Chip Real Size</td><td>" + String(ESP.getFlashChipRealSize()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Flash Chip Size</td><td>" + String(ESP.getFlashChipSize()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Sketch MD5</td><td>" + String(ESP.getSketchMD5()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Sketch size</td><td>" + String(ESP.getSketchSize()) + "</td><tr></tr>";
-  mainPage += "<tr><td>Free Sketch size</td><td>" + String(ESP.getFreeSketchSpace()) + "</td><tr></tr>";
-  mainPage += "</table>";
-  mainPage += "<a href=\"\\DeviceReset\">ESP Device Reset</a>";
-  mainPage += "</body></html>";
-  httpServer.sendHeader("Connection", "close");
-  httpServer.send(200, "text/html", mainPage);
-  stdOut("req from " + httpServer.client().remoteIP().toString() + ", device details page");
-}
-
 void httpServerHandleDeviceReset(){
   httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
   httpServer.send(303);
@@ -240,7 +173,7 @@ void httpServerHandleDeviceReset(){
 void httpServerHandleNotFound(){
   if (loadFromSpiffs(httpServer.uri()))
     return;
-  //logTelnetBuff.write("uri error :" + httpServer.uri() + "\r\n");
+  stdOut("uri error :" + httpServer.uri());
   httpServer.sendHeader("Connection", "close");
   httpServer.send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
   stdOut("req from " + httpServer.client().remoteIP().toString() + " <br> " + httpServer.uri() + " <br> 404 page");
@@ -249,9 +182,11 @@ void httpServerHandleNotFound(){
 bool loadFromSpiffs(String path) {
   String dataType = "text/plain";
   bool fileTransferStatus = false;
-  //stdOut("Send file request:" + path + "\r\n");
-  if (path.endsWith("/")) // If a folder is requested, send the default index.html
-    path += "index.htm";
+  
+  if (path.endsWith("/")){ // If a folder is requested, send the default index.html
+    path += "index.html";
+    dataType = "text/html";
+  }
   else if (path.endsWith(".html")) dataType = "text/html";
   else if (path.endsWith(".htm")) dataType = "text/html";
   else if (path.endsWith(".css")) dataType = "text/css";
@@ -267,12 +202,12 @@ bool loadFromSpiffs(String path) {
   File dataFile = SPIFFS.open(path.c_str(), "r");
 
   if (!dataFile) {
-    //stdOut(String("Failed to open file: ") + path);
+    stdOut("Failed to open file:" + path);
     return fileTransferStatus;
   }
   else {
     if (httpServer.streamFile(dataFile, dataType) == dataFile.size()) {
-      //stdOut(String("Sent file: ") + path);
+      stdOut(String("Sent file: ") + path);
       fileTransferStatus = true;
     }
   }

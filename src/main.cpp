@@ -79,23 +79,23 @@ void isrTick1sFunc(){
 }
 
 void isrDebounce(){
-    if ( (stISREna[0]==besFALSE) && (abs(millis()-tiISRDis[0])>tiISRDebMsec) ){
-      attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
-      stISREna[0] = besTRUE;
-    }
-    if ( (stISREna[1]==besFALSE) && (abs(millis()-tiISRDis[1])>tiISRDebMsec) ){
-      //attachInterrupt(digitalPinToInterrupt(pinSwSpare), isrD2, CHANGE);
-      stISREna[1] = besTRUE;
-    }
-    if ( (stISREna[2]==besFALSE) && (abs(millis()-tiISRDis[2])>tiISRDebMsec) ){
-      attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
-      stISREna[2] = besTRUE;
-    }
-    if ( (stISREna[3]==besFALSE) && (abs(millis()-tiISRDis[3])>tiISRDebMsec) ){
-      attachInterrupt(digitalPinToInterrupt(pinRFLight), isrRFLight, FALLING);
-      stISREna[3] = besTRUE;
-    }
+  if ( (stISREna[0]==besFALSE) && (abs(millis()-tiISRDis[0])>tiISRDebMsec) ){
+    attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
+    stISREna[0] = besTRUE;
   }
+  if ( (stISREna[1]==besFALSE) && (abs(millis()-tiISRDis[1])>tiISRDebMsec) ){
+    //attachInterrupt(digitalPinToInterrupt(pinSwSpare), isrD2, CHANGE);
+    stISREna[1] = besTRUE;
+  }
+  if ( (stISREna[2]==besFALSE) && (abs(millis()-tiISRDis[2])>tiISRDebMsec) ){
+    attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
+    stISREna[2] = besTRUE;
+  }
+  if ( (stISREna[3]==besFALSE) && (abs(millis()-tiISRDis[3])>tiISRDebMsec) ){
+    attachInterrupt(digitalPinToInterrupt(pinRFLight), isrRFLight, FALLING);
+    stISREna[3] = besTRUE;
+  }
+}
 
 void confPins(){
   pinMode(pinOnBoardLED, OUTPUT);
@@ -189,15 +189,13 @@ void configHttpServer(){
   }
   stdOut("Starting web server on ");
   stdOut(WiFi.localIP().toString());
-  httpServer.on("/", HTTP_GET,httpServerHandleRoot);               // Call the 'handleRoot' function when a client requests URI "/"
   httpServer.on("/FanCmdReq", HTTP_POST,httpServerHandleFanCmdReq);
-  httpServer.on("/filelist", httpServerHandleFileList);
+  httpServer.on("/getData", HTTP_POST,httpServerHandleGetData);
   httpServer.on("/fileupload", HTTP_GET, httpServerHandleFileUpload);
   httpServer.on("/fileuploadstream", HTTP_POST, [](){
     httpServer.send(200);
     }, httpServerHandleFileUploadStream);
   httpServer.on("/saveSSID", HTTP_POST,httpServerHandleSaveSSID);
-  httpServer.on("/Device", HTTP_GET,httpServerHandleDevice);
   httpServer.on("/DeviceReset", HTTP_GET,httpServerHandleDeviceReset);
   httpServer.onNotFound(httpServerHandleNotFound);
 
