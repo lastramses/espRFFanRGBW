@@ -1,50 +1,50 @@
 #include "includes.h"
-#include <espRFFanGlobals.h>
-#include <HttpServerHandles.h>
+#include "espRFFanGlobals.h"
+#include "HttpServerHandles.h"
 
 void httpServerHandleFanCmdReq(){
-if (httpServer.hasArg("HarborBreezeReq")==true){
-  if (httpServer.arg("HarborBreezeReq")=="Light")
-    fanHarborBreeze.sendCmd(FanLight);
-  else if (httpServer.arg("HarborBreezeReq")=="FanOff")
-    fanHarborBreeze.sendCmd(FanOff);
-  else if (httpServer.arg("HarborBreezeReq")=="FanReverse")
-    fanHarborBreeze.sendCmd(FanReverse);
-  else if (httpServer.arg("HarborBreezeReq")=="FanLow")
-    fanHarborBreeze.sendCmd(FanLow);
-  else if (httpServer.arg("HarborBreezeReq")=="FanMedium")
-    fanHarborBreeze.sendCmd(FanMedium);
-  else if (httpServer.arg("HarborBreezeReq")=="FanHigh")
-    fanHarborBreeze.sendCmd(FanHigh);
-  else
-    stdOut("unknown command:" + httpServer.arg("HarborBreezeReq"));
+  if (httpServer.hasArg("HarborBreezeReq")==true){
+    if (httpServer.arg("HarborBreezeReq")=="Light")
+      fanHarborBreeze.sendCmd(FanLight);
+    else if (httpServer.arg("HarborBreezeReq")=="FanOff")
+      fanHarborBreeze.sendCmd(FanOff);
+    else if (httpServer.arg("HarborBreezeReq")=="FanReverse")
+      fanHarborBreeze.sendCmd(FanReverse);
+    else if (httpServer.arg("HarborBreezeReq")=="FanLow")
+      fanHarborBreeze.sendCmd(FanLow);
+    else if (httpServer.arg("HarborBreezeReq")=="FanMedium")
+      fanHarborBreeze.sendCmd(FanMedium);
+    else if (httpServer.arg("HarborBreezeReq")=="FanHigh")
+      fanHarborBreeze.sendCmd(FanHigh);
+    else
+      stdOut("unknown command:" + httpServer.arg("HarborBreezeReq"));
 
-  httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
-  httpServer.send(303);
-}else if (httpServer.hasArg("CasablancaReq")==true){
-  if (httpServer.arg("CasablancaReq")=="Light")
-    fanCasablanca.sendCmd(FanLight);
-  else if (httpServer.arg("CasablancaReq")=="FanOff")
-    fanCasablanca.sendCmd(FanOff);
-  else if (httpServer.arg("CasablancaReq")=="FanReverse")
-    fanCasablanca.sendCmd(FanReverse);
-  else if (httpServer.arg("CasablancaReq")=="FanLow")
-    fanCasablanca.sendCmd(FanLow);
-  else if (httpServer.arg("CasablancaReq")=="FanMedium")
-    fanCasablanca.sendCmd(FanMedium);
-  else if (httpServer.arg("CasablancaReq")=="FanHigh")
-    fanCasablanca.sendCmd(FanHigh);
-  else
-    stdOut("unknown command:" + httpServer.arg("CasablancaReq"));
+    httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
+    httpServer.send(303);
+  }else if (httpServer.hasArg("CasablancaReq")==true){
+    if (httpServer.arg("CasablancaReq")=="Light")
+      fanCasablanca.sendCmd(FanLight);
+    else if (httpServer.arg("CasablancaReq")=="FanOff")
+      fanCasablanca.sendCmd(FanOff);
+    else if (httpServer.arg("CasablancaReq")=="FanReverse")
+      fanCasablanca.sendCmd(FanReverse);
+    else if (httpServer.arg("CasablancaReq")=="FanLow")
+      fanCasablanca.sendCmd(FanLow);
+    else if (httpServer.arg("CasablancaReq")=="FanMedium")
+      fanCasablanca.sendCmd(FanMedium);
+    else if (httpServer.arg("CasablancaReq")=="FanHigh")
+      fanCasablanca.sendCmd(FanHigh);
+    else
+      stdOut("unknown command:" + httpServer.arg("CasablancaReq"));
 
-  httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
-  httpServer.send(303);
-}else{
-  httpServer.sendHeader("Location","/");
-  httpServer.send(404);
-  //TODO: register incorrect request time, source ip
-}
-stdOut("req from " + httpServer.client().remoteIP().toString() + ", Pwr Req");
+    httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
+    httpServer.send(303);
+  }else{
+    httpServer.sendHeader("Location","/");
+    httpServer.send(404);
+    //TODO: register incorrect request time, source ip
+  }
+    stdOut("req from " + httpServer.client().remoteIP().toString() + ", Pwr Req");
 }
 
 void httpServerHandleGetData(){
@@ -59,6 +59,17 @@ void httpServerHandleGetData(){
     jsonFileList.remove(jsonFileList.length()-1,1); //remove last ","
     jsonFileList += "]}";
     httpServer.send(200, "text/html", jsonFileList);
+  }else if(httpServer.hasArg("sunriseConf")==true){
+    String tmp = "0";
+    String jsonDeviceData="{\"espData\":[{\"Field\":\"stSunriseSimAct\",\"Data\":\"" + String(sunriseSim.getStSunriseSimEna()) + "\"},"
+    "{\"Field\":\"stSunriseSimDaysAct\",\"Data\":\"" + String(sunriseSim.getTiSunriseDaysEna()) + "\"},"
+    "{\"Field\":\"tiSunriseSimSHrStart\",\"Data\":\"0" + String(sunriseSim.getTiSunriseHrStrt()) + "\"},"
+    "{\"Field\":\"tiSunriseSimSMinStart\",\"Data\":\"0" + String(sunriseSim.getTiSunriseMinStrt()) + "\"},"
+    "{\"Field\":\"tiRampOnDurMin\",\"Data\":\"" + String(sunriseSim.getTiRampOnDurMin()) + "\"},"
+    "{\"Field\":\"tiStayOnDurMin\",\"Data\":\"" + String(sunriseSim.getTiStayOnDurMin()) + "\"},"
+    "{\"Field\":\"rgbRampEnd\",\"Data\":\"#" + String(sunriseSim.hsl2rgb(sunriseSim.getHSLRampEnd()),HEX) + "\"},"
+    "{\"Field\":\"rgbEnd\",\"Data\":\"#" + String(sunriseSim.hsl2rgb(sunriseSim.getHSLEnd()),HEX) + "\"}]}";
+    httpServer.send(200, "text/html", jsonDeviceData);
   }else if(httpServer.hasArg("deviceData")==true){
     String jsonDeviceData="{\"espData\":[{\"Field\":\"Host Name\",\"Data\":\"" + espHost + "\"},"
     "{\"Field\":\"Device IP\",\"Data\":\"" + WiFi.localIP().toString() + "\"},"
@@ -101,7 +112,7 @@ void httpServerHandleFileUpload(){
 }
 
 void httpServerHandleFileUploadStream(){
-  // curl -X POST -F "file=@SomeFile.EXT" espOnOff.local/fileuploadstream
+  // curl -X POST -F "file=@SomeFile.EXT" espHost.local/fileuploadstream
   //logTelnetBuff.write("fileupload stream requested\r\n");
   HTTPUpload& upload = httpServer.upload();
   //File fsUploadFile;
@@ -164,6 +175,75 @@ void httpServerHandleSaveSSID(){
   httpServer.send(303);
 }
 
+void httpServerHandleSaveSunrise(){
+  if (httpServer.hasArg("saveSunriseSim")==true && httpServer.arg("saveSunriseSim")=="Save"){
+    SPIFFS.remove("/configSunriseSim.dat");
+    File configFile = SPIFFS.open("/configSunriseSim.dat", "w");
+    uint8_t stSunriseSimAct = besFALSE;
+    if (httpServer.arg("stSunriseSimAct")=="on")
+      stSunriseSimAct = besTRUE;
+    else
+      stSunriseSimAct = besFALSE;
+    configFile.write(stSunriseSimAct);
+    
+    uint8_t tiSunriseDaysAct=0;
+    if (httpServer.hasArg("stDaySunEna"))
+      tiSunriseDaysAct |=  0b00000001;
+    if (httpServer.hasArg("stDayMonEna"))
+      tiSunriseDaysAct |=  0b00000010;
+    if (httpServer.hasArg("stDayTueEna"))
+      tiSunriseDaysAct |=  0b00000100;
+    if (httpServer.hasArg("stDayWedEna"))
+      tiSunriseDaysAct |=  0b00001000;
+    if (httpServer.hasArg("stDayThuEna"))
+      tiSunriseDaysAct |=  0b00010000;
+    if (httpServer.hasArg("stDayFriEna"))
+      tiSunriseDaysAct |=  0b00100000;
+    if (httpServer.hasArg("stDaySatEna"))
+      tiSunriseDaysAct |=  0b01000000;
+    
+    configFile.write(tiSunriseDaysAct);
+    
+    String tiSunriseSimStartTime = httpServer.arg("tiSunriseSimStartTime");
+    uint8_t tiHrStrt = strToInt(tiSunriseSimStartTime.substring(0,2));
+    uint8_t tiMinStrt = strToInt(tiSunriseSimStartTime.substring(3,5));
+    uint8_t tiRampOnDurMin = strToInt(httpServer.arg("tiRampOnDurMin"));
+    uint8_t tiStayOnDurMin = strToInt(httpServer.arg("tiStayOnDurMin"));
+    configFile.write(tiHrStrt);
+    configFile.write(tiMinStrt);
+    configFile.write(tiRampOnDurMin);
+    configFile.write(tiStayOnDurMin);
+
+    uint32_t hslRampEnd = sunriseSim.rgb2hsl(httpServer.arg("rgbRampEnd"));
+    uint32_t hslEnd = sunriseSim.rgb2hsl(httpServer.arg("rgbEnd"));
+    configFile.write(0);
+    configFile.write((hslRampEnd&0xFF0000)>>16);
+    configFile.write((hslRampEnd&0x00FF00)>>8);
+    configFile.write(hslRampEnd&0x0000FF);
+    configFile.write(0);
+    configFile.write((hslEnd&0xFF0000)>>16);
+    configFile.write((hslEnd&0x00FF00)>>8);
+    configFile.write(hslEnd&0x0000FF);
+    configFile.close();
+
+    SunriseSim tmpConfig(stSunriseSimAct,tiSunriseDaysAct,tiHrStrt,
+      tiMinStrt,tiRampOnDurMin, tiStayOnDurMin,hslRampEnd, hslEnd);
+    stdOut("HTTP sunriseSim data received:");
+    stdOut(" stSunriseSimAct=" + String(stSunriseSimAct));
+    stdOut(" tiSunriseDaysAct=" + String(tiSunriseDaysAct));
+    stdOut(" tiHrStrt=" + String(tiHrStrt));
+    stdOut(" tiMinStrt=" + String(tiMinStrt));
+    stdOut(" tiRampOnDur=" + String(tiRampOnDurMin));
+    stdOut(" tiStayOnDur=" + String(tiStayOnDurMin));
+    stdOut(" hslRampEnd=" + String(hslRampEnd));
+    stdOut(" hslEnd=" + String(hslEnd));
+    
+    sunriseSim.updateConf(&tmpConfig);
+    httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
+    httpServer.send(303);
+  }
+}
+
 void httpServerHandleDeviceReset(){
   httpServer.sendHeader("Location","/"); // Add a header to respond with a new location for the browser to go to the home page again
   httpServer.send(303);
@@ -224,7 +304,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       analogWrite(pinGREEN,0); //10bit pwm
       analogWrite(pinBLUE,0); //10bit pwm
       analogWrite(pinWHITE,0); //10bit pwm
-      digitalWrite(pinOnBoardLED,HIGH); //white & onboard blue led are on the same pin
     }
     break;
 
@@ -240,7 +319,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     case WStype_TEXT: {
       Serial.printf("[%u] get Text: %s\n", num, payload);
       String colourData = (const char *)payload;
-      stdOut(num + " TEXT:" + String((char *)payload));
+      //stdOut(num + " TEXT:" + String((char *)payload));
       if (colourData.substring(0,1)=="#"){
         uint8_t arrRGBweb[3];
         for (int i=0;i<3;++i)
@@ -249,11 +328,21 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           colourData.substring(i*2+1,i*2+3).toCharArray(tmpColor, 3);
           arrRGBweb[i] = strtol(tmpColor, NULL, 16);
         }
-        stdOut("R="+String(arrRGBweb[0])+", G="+String(arrRGBweb[1])+", B="+String(arrRGBweb[2]));
-        analogWrite(pinRED,arrRGBweb[0]*4); //10bit pwm
-        analogWrite(pinGREEN,arrRGBweb[1]*4); //10bit pwm
-        analogWrite(pinBLUE,arrRGBweb[2]*4); //10bit pwm
-        analogWrite(pinWHITE,204); //10bit pwm
+        //stdOut("R="+String(arrRGBweb[0])+", G="+String(arrRGBweb[1])+", B="+String(arrRGBweb[2]));
+        uint32_t rgbwWeb = (arrRGBweb[0]<<16)+(arrRGBweb[1]<<8)+arrRGBweb[2];
+        //stdOut(" websocket: arrRGBweb="+String(arrRGBweb[0])+","+String(arrRGBweb[1])+","+String(arrRGBweb[2])+
+         // ",rgbwWeb="+String(rgbwWeb));
+        rgbwWeb = sunriseSim.rgb2rgbw(rgbwWeb);
+
+        analogWrite(pinRED,((rgbwWeb&0xFF000000)>>24)<<2); //10bit pwm
+        analogWrite(pinGREEN,((rgbwWeb&0x00FF0000)>>16)<<2); //10bit pwm
+        analogWrite(pinBLUE,((rgbwWeb&0x0000FF00)>>8)<<2); //10bit pwm
+        analogWrite(pinWHITE,((rgbwWeb&0x000000FF))<<2); //10bit pwm
+
+        //analogWrite(pinRED,arrRGBweb[0]<<2); //10bit pwm
+        //analogWrite(pinGREEN,arrRGBweb[1]<<2); //10bit pwm
+        //analogWrite(pinBLUE,arrRGBweb[2]<<2); //10bit pwm
+        //analogWrite(pinWHITE,0); //10bit pwm
       }
 
       // echo data back to browser

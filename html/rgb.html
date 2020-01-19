@@ -1,46 +1,76 @@
 <!DOCTYPE html>
 <html>
-  <head>
-      <script src="iro.min.js"></script>
-      <link href='style.css' rel='stylesheet' type='text/css'>
-  </head>
-  <body><center>
-      <div class="colorPicker"></div>
-	  </center>
-  </body>
+<head>
+		<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+		<title>RGB Light</title>
+		<script src="iro.min.js"></script>
+		<script>
+		function openNav() {
+				document.getElementById("mySidebar").style.width = "250px";
+				document.getElementById("main").style.marginLeft = "250x";
+			}
+			/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+			function closeNav() {
+				document.getElementById("mySidebar").style.width = "0";
+				document.getElementById("main").style.marginLeft = "0";
+			}
+		</script>
+		<script>
+			var connection = new WebSocket('ws://' + location.hostname + ':81/rgb.html');
+			var colorPicker;
+			connection.onopen = function () {
+				console.log('WebSocket Connect ');
+			};
+			connection.onerror = function (error) {
+				console.log('WebSocket Error ', error);
+			};
+			connection.onclose = function () {
+				console.log('WebSocket connection closed');
+			};
+			connection.onmessage = function (e) {
+				var colourArgument = new iro.Color(e.data);
+				console.log('WebSocket Data ', e);
+				// Create a new color picker instance
+				// https://iro.js.org/guide.html#getting-started
+				var rgbValues = document.getElementById("rgbValues");
+				var colorPicker = new iro.ColorPicker(".colorPicker", {
+					// color picker options
+					// Option guide: https://iro.js.org/guide.html#color-picker-options
+					width: 350,
+					color: colourArgument,
+					borderWidth: 1,
+					borderColor: "#ffffff",
+					wheelLightness: false,
+				});
+				// https://iro.js.org/guide.html#color-picker-events
+				colorPicker.on(["color:change"], function(color){
+					// Show the current color in different formats
+					// Using the selected color: https://iro.js.org/guide.html#selected-color-api
+					connection.send(color.hexString);
+					rgbValues.innerHTML = color.rgbString;
+			//  ];
+					console.log("hex: " + color.hexString);
+				});
+			};
+		</script>
+		<link href='style.css' rel='stylesheet' type='text/css'>
+</head>
+<body>
+	<div id="mySidebar" class="sidebar">
+		<a href="javascript:void(0)" class="navCloseBtn" onclick="closeNav()">&times;</a>
+		<a href="index.html">Home</a>
+		<a href="rgb.html">RGB</a>
+		<a href="sunrise.html">Sunrise</a>
+		<a href="settings.html">Settings</a>
+		<a href="info.html">Info</a>
+	</div>
+	<div id="main">
+		<button class="navOpenBtn" onclick="openNav()">&#9776;</button>
+		<center>
+			<div class="colorPicker"></div>
+			<div id="rgbValues" style="text-align: center;"></div>
+		</center>
+	</div>
+</body>
 </html>
 
-<script>
-var connection = new WebSocket('ws://' + location.hostname + ':81/rgb.html');
-var colorPicker;
-connection.onopen = function () {
-  console.log('WebSocket Connect ');
-};
-connection.onerror = function (error) {
-  console.log('WebSocket Error ', error);
-};
-connection.onclose = function () {
-  console.log('WebSocket connection closed');
-};
-connection.onmessage = function (e) {
-  var colourArgument = new iro.Color(e.data);
-  console.log('WebSocket Data ', e);
-  // Create a new color picker instance
-  // https://iro.js.org/guide.html#getting-started
-  var colorPicker = new iro.ColorPicker(".colorPicker", {
-    // color picker options
-    // Option guide: https://iro.js.org/guide.html#color-picker-options
-    width: 700,
-    color: colourArgument,
-    borderWidth: 1,
-    borderColor: "#ffffff",
-    wheelLightness: false,
-  });
-  // https://iro.js.org/guide.html#color-picker-events
-  colorPicker.on(["color:change"], function(color){
-    // Show the current color in different formats
-    // Using the selected color: https://iro.js.org/guide.html#selected-color-api
-    connection.send(color.hexString);
-  });
-};
-</script>

@@ -4,17 +4,16 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <Ticker.h>
-
-#include "SysTime.h"
-#include "AutoSch.h"
-
-#include "serviceFcn.h"
 #include "espRFFanGlobals.h"
+#include "LocalTime.h"
+#include "serviceFcn.h"
 #include "HttpServerHandles.h"
 
 void isrTickDiagFunc();
+int sendIFTTTCmd();
 
 Ticker tick1s; //not as accurate as isr!
+Ticker tick60s; //not as accurate as isr!
 
 ESP8266WebServer httpServer(80);
 ESP8266HTTPUpdateServer httpUpdater;
@@ -23,14 +22,15 @@ WebSocketsServer webScktSrv(81);
 WiFiServer telnetServer(23);
 WiFiClient telnetClient;
 
-SysTime espTime;
-AutoSch fanAutoSch;
 LogCircBuffer<512> logTelnetBuff;
+uint8_t stTick60Req = besFALSE;
+uint8_t stTick1Req = besFALSE;
 unsigned long tiISRDis[4] = {0,0,0,0}; //time stamp a wich the isr was disabled
 uint8_t stISREna[4] = {besTRUE, besTRUE, besTRUE, besTRUE}; //flag used to debounce the input
 uint16_t tiISRDebMsec = 200; //debounce (disable isr on pin) time
 uint8_t stISRReq[4] = {besFALSE, besFALSE, besFALSE, besFALSE}; //flag to process isr in main loop
 File fsUploadFile; //used by fileuploadstream
+SunriseSim sunriseSim;
 
 String espHost = "espRFFan";
 String confSSID;
@@ -74,11 +74,15 @@ void ICACHE_RAM_ATTR isrRFLight(){
 }
 
 void isrTick1sFunc(){
-  //digitalWrite(pinBlueLED, !digitalRead(pinBlueLED));
-  espTime.incrementSecond();
+  if (sunriseSim.isActive()==besTRUE)
+    stTick1Req = besTRUE;
 }
 
-void isrDebounce(){
+void isrTick60sFunc(){
+  stTick60Req = besTRUE;
+}
+
+void ICACHE_RAM_ATTR isrDebounce(){
   if ( (stISREna[0]==besFALSE) && (abs(millis()-tiISRDis[0])>tiISRDebMsec) ){
     attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
     stISREna[0] = besTRUE;
@@ -97,6 +101,24 @@ void isrDebounce(){
   }
 }
 
+void isrFlagProcess(){
+  if (stISRReq[0] == besTRUE){
+    // TODO: change flag
+    stISRReq[0] = besFALSE;
+  }
+  if (stISRReq[1] == besTRUE){
+    stISRReq[1] = besFALSE;
+  }
+  if (stISRReq[2] == besTRUE){
+    sendIFTTTCmd();
+    stISRReq[2] = besFALSE;
+  }
+  if (stISRReq[3] == besTRUE){
+    fanCasablanca.sendCmd(0);
+    stISRReq[3] = besFALSE;
+  }
+}
+
 void confPins(){
   pinMode(pinOnBoardLED, OUTPUT);
   pinMode(pinAutoSchedEna, INPUT_PULLUP); //top sw
@@ -108,7 +130,7 @@ void confPins(){
   pinMode(pinRFLight, INPUT_PULLUP); //top push light
   attachInterrupt(digitalPinToInterrupt(pinRFLight), isrRFLight, FALLING);
   pinMode(pinRFSend, OUTPUT);
-  digitalWrite(pinRFSend, LOW); // TODO: probably has to be high to reduce current cons
+  digitalWrite(pinRFSend, HIGH); // TODO: probably has to be high to reduce current cons
 
   pinMode(pinRED,OUTPUT);
   analogWrite(pinRED,0); //10bit pwm
@@ -123,7 +145,7 @@ void confPins(){
 void confSPIFFS(){
   if (SPIFFS.begin()) {
     stdOut("SPIFFS File system loaded");
-    fanAutoSch.loadConfFile();
+    //fanAutoSch.loadConfFile();
     File configFile = SPIFFS.open("/config.dat", "r");
     if (configFile){
       String tmpstr = configFile.readStringUntil(3); //read empty 3
@@ -140,9 +162,34 @@ void confSPIFFS(){
       stdOut("confSSID = " + confSSID);
       stdOut("confPW = " + confPW);
       stdOut("confIFTTTKey = " + confIFTTTKey);
-
     }
-    stdOut("SPIFFS size: " + String(ESP.getFlashChipSize()) + "\r\n");
+    configFile = SPIFFS.open("/configSunriseSim.dat", "r");
+    if (configFile){
+      uint8_t stSunriseSimAct = configFile.read();
+      uint8_t tiSunriseDaysAct = configFile.read();
+      uint8_t tiHrStrt = configFile.read();
+      uint8_t tiMinStrt = configFile.read();
+      uint8_t tiRampOnDur = configFile.read();
+      uint8_t tiStayOnDur = configFile.read();
+      uint32_t hslRampEnd = configFile.read() + (configFile.read()<<16) + 
+        (configFile.read()<<8) + (configFile.read());
+      uint32_t hslEnd = configFile.read() + (configFile.read()<<16) + 
+        (configFile.read()<<8) + (configFile.read());
+
+      SunriseSim tmpConfig(stSunriseSimAct,tiSunriseDaysAct,tiHrStrt,
+      tiMinStrt,tiRampOnDur, tiStayOnDur,hslRampEnd, hslEnd);
+      stdOut("Loading /configSunriseSim.dat:");
+      stdOut(" stSunriseSimAct=" + String(stSunriseSimAct));
+      stdOut(" tiSunriseDaysAct=" + String(tiSunriseDaysAct));
+      stdOut(" tiHrStrt=" + String(tiHrStrt));
+      stdOut(" tiMinStrt=" + String(tiMinStrt));
+      stdOut(" tiRampOnDur=" + String(tiRampOnDur));
+      stdOut(" tiStayOnDur=" + String(tiStayOnDur));
+      stdOut(" hslRampEnd=" + String(hslRampEnd));
+      stdOut(" hslEnd=" + String(hslEnd));
+    
+      sunriseSim.updateConf(&tmpConfig);
+    }
   }else{
     stdOut(" Error loading SPIFFS File system");
   }
@@ -167,7 +214,7 @@ void confWIFI(){
       WiFi.softAPConfig(IPAddress(192,168,0,1), IPAddress(192,168,0,1), IPAddress(255,255,255,0)) ;
       WiFi.softAP(espHost, "12345678"); // Start the access point
       stdOut("Access Point \"" + espHost + "\" started");
-      stdOut("IP address:\t" + WiFi.softAPIP());
+      stdOut("IP address:\t" + WiFi.softAPIP().toString());
     }else{
       File wifiConnFail = SPIFFS.open("/wifiConnFail", "w");
       wifiConnFail.print("Connection to " + confSSID + " failed, attempting reset");
@@ -176,7 +223,7 @@ void confWIFI(){
     }
   }
   SPIFFS.remove("/wifiConnFail");//remove file as user should have configured the ssid
-  digitalWrite(pinOnBoardLED,HIGH);
+  digitalWrite(pinOnBoardLED,HIGH); //leave led on, same pin used by red channel
   stdOut("\r\nWiFi connected");
 }
 
@@ -191,6 +238,11 @@ void configHttpServer(){
   stdOut(WiFi.localIP().toString());
   httpServer.on("/FanCmdReq", HTTP_POST,httpServerHandleFanCmdReq);
   httpServer.on("/getData", HTTP_POST,httpServerHandleGetData);
+  httpServer.on("/saveSunriseSim",HTTP_POST,httpServerHandleSaveSunrise);
+  httpServer.on("/sunriseSimTest",HTTP_POST,[](){
+    sunriseSim.Start();
+    httpServer.send(200, "text/plain", "{\"sunrise simulation started\"}");
+  });
   httpServer.on("/fileupload", HTTP_GET, httpServerHandleFileUpload);
   httpServer.on("/fileuploadstream", HTTP_POST, [](){
     httpServer.send(200);
@@ -211,6 +263,36 @@ void configHttpServer(){
   telnetServer.begin();
   telnetServer.setNoDelay(true);
   stdOut("telnet server started");
+}
+
+void ICACHE_RAM_ATTR telnetProcess(){
+  if (telnetServer.hasClient()) {
+    if (!telnetClient) { // equivalent to !serverClients[i].connected()
+      telnetClient = telnetServer.available();
+      stdOut("New telnet client");
+    }
+  }
+
+  while (telnetClient.available()){
+    int charRead = telnetClient.read();
+    //stdOut(charRead);
+    if (charRead==100){ //=d
+      charRead = telnetClient.read();
+      if (charRead == 32){ //=" "
+        String tmp = telnetClient.readStringUntil(13);
+        stdOut("del req=\""+tmp+"\"");
+        SPIFFS.remove("/" + tmp);
+      }
+    }
+    logTelnetBuff.write(String(charRead));
+  }
+
+  if (telnetClient.availableForWrite()){
+    uint16_t lenLogBuf = logTelnetBuff.getBuffDataSize();
+     for (uint16_t i=0;i<lenLogBuf;++i){
+       telnetClient.write(logTelnetBuff.read());
+      }
+  }
 }
 
 int sendIFTTTCmd(){
@@ -254,16 +336,13 @@ void setup() {
   confWIFI();
   configHttpServer();
 
-  tick1s.attach(1,isrTick1sFunc);//tickerObj.attach(timeInSecs,isrFunction)
-  espTime.syncTime();
-  if (espTime.isSync()==false){ //sync failed at boot, dont start auto schedule
-    fanAutoSch.setAutoSchEna(false);
-  }
+  tick60s.attach(60,isrTick60sFunc);//tickerObj.attach(timeInSecs,isrFunction)
+  tick1s.attach(1,isrTick1sFunc);
+  configTime(-5*3600, 0*3600, "pool.ntp.org", "time.nist.gov");
 
-  stdOut("System time = " + String(espTime.getDay()) + " - " +
-                String(espTime.getHr()) + ":" +
-                String(espTime.getMin()) +  ":" +
-                String(espTime.getSec()));
+  //if (espTime.isSync()==false){ //sync failed at boot, dont start auto schedule
+  //  fanAutoSch.setAutoSchEna(false);
+  //}
 
   bool valCasablanca[6][13] = {{0,1,1,1,1,0,1,0,0,0,0,0,1}, //Light
                                 {0,1,1,1,1,0,1,0,0,0,0,1,0}, //Fan Off
@@ -282,76 +361,36 @@ void setup() {
   fanHarborBreeze.setSequence(valHarborBreeze);
 }
 
-bool isAutoSchedTime(){
-  int schFcn = fanAutoSch.isAutoSchTi(&espTime);
-  if (schFcn==1){//send on
-    fanHarborBreeze.sendCmd(0);
-    return true;
-  }else if(schFcn==2){ //send off
-    fanHarborBreeze.sendCmd(0);
-    return true;
+bool minTurnFlag(){
+  //if ((fanAutoSch.getStAutoSch()==true) && (digitalRead(pinAutoSchedEna) == LOW))
+  //  isAutoSchedTime();
+  stTick60Req = besFALSE;
+  printLocalTime();
+  if (sunriseSim.getStSunriseSimEna()==besTRUE && isTime(sunriseSim.getTiSunriseDaysEna(),
+      sunriseSim.getTiSunriseHrStrt(),sunriseSim.getTiSunriseMinStrt())==besTRUE){
+    sunriseSim.Start();
   }
-  return false;
+  //TODO: check if time is greater than curent time and force rgbw=0
+  return 0;
 }
 
-bool minTurnFlag(){
-  stdOut("time = " + String(espTime.getDay()) + " - " +
-                String(espTime.getHr()) +  ":" +
-                String(espTime.getMin()) +  ":" +
-                String(espTime.getSec()));
-  if ((fanAutoSch.getStAutoSch()==true) && (digitalRead(pinAutoSchedEna) == LOW))
-    isAutoSchedTime();
-  if (((espTime.getHr()==15) && (espTime.getMin()==0)) || espTime.getSecSinceLastSync()>(24*60*60 + 15*60)) //sync every day at 3pm or if sync failed retry every 15 minutes
-    espTime.syncTime(); // you might lose sync right in the middle when fan is on and let it run for hours... so maybe syn at 3pm everyday? also check deviation
-  return 0;
+void secTurnFlag(){
+  sunriseSim.incrementSecond();
+  stTick1Req = besFALSE;
 }
 
 void loop() {
   httpServer.handleClient();
   MDNS.update();
   webScktSrv.loop();
-  if (stISRReq[0] == besTRUE){
-    // TODO: change flag
-    stISRReq[0] = besFALSE;
-  }
-  if (stISRReq[1] == besTRUE){
-    stISRReq[1] = besFALSE;
-  }
-  if (stISRReq[2] == besTRUE){
-    sendIFTTTCmd();
-    stISRReq[2] = besFALSE;
-  }
-  if (stISRReq[3] == besTRUE){
-    fanCasablanca.sendCmd(0);
-    stISRReq[3] = besFALSE;
-  }
+  
+  isrFlagProcess();
 
-  if (telnetServer.hasClient()) {
-    if (!telnetClient) { // equivalent to !serverClients[i].connected()
-      telnetClient = telnetServer.available();
-      stdOut("New telnet client");
-    }
-  }
+  telnetProcess();
 
-  while (telnetClient.available()){
-    int charRead = telnetClient.read();
-    //stdOut(charRead);
-    if (charRead==30)
-      SPIFFS.remove("/rgb.html");
-    else if (charRead==31)
-      SPIFFS.remove("/rgbw.html");
-    else if (charRead==32)
-      SPIFFS.remove("/rgbw2.html");
-  }
-
-  if (telnetClient.availableForWrite()){
-    uint16_t lenLogBuf = logTelnetBuff.getBuffDataSize();
-     for (uint16_t i=0;i<lenLogBuf;++i){
-       telnetClient.write(logTelnetBuff.read());
-      }
-  }
-
-  if (espTime.isSysMinTurnFlag()==true) //check if it is time to start fan & or is time to resync timer
+  if (stTick1Req==besTRUE)
+    secTurnFlag();
+  if (stTick60Req==besTRUE)
     minTurnFlag();
 
   isrDebounce();

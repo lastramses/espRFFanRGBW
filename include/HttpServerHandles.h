@@ -3,6 +3,7 @@
 // function prototypes for HTTP handlers
 
 void httpServerHandleFanCmdReq();
+void httpServerHandleSaveSunrise();
 void httpServerHandleGetData();
 void httpServerHandleFileUpload();
 void httpServerHandleFileUploadStream();

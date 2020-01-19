@@ -1,13 +1,11 @@
 #ifndef ESPRFFANGLOABLSDEFINE_H
 #define ESPRFFANGLOABLSDEFINE_H
 
-#include <includes.h>
-
 #define pinWHITE 5 // D1 RGBW White Channel
 #define pinBLUE 4 // D2 RGBW Blue Channel
 #define pinGREEN 0 // D3 RGBW Green Channel
-#define pinRED 2 // D4 RGBW Red Channel
-#define pinRFSend 14 // D5, pwm out tx pin
+#define pinRED 14 // D5 RGBW Red Channel
+#define pinRFSend 2 // D4, pwm out tx pin
 #define pinIFTTT 12 // D6, pwm input to send an ifttt
 #define pinRFLight 13 // D7, digital input to toggle light
 #define pinAutoSchedEna 15 // D8, dig in enable auto fan schedule
@@ -28,6 +26,9 @@
 #define FanHigh 0x5
 
 #define stdOutTgt 3//0=none,1=serial,2=logString,3=serial&LogString
+
+#include <includes.h>
+
 extern RFFan fanHarborBreeze;
 extern RFFan fanCasablanca;
 extern ESP8266WebServer httpServer;
@@ -35,5 +36,6 @@ extern WebSocketsServer webScktSrv;
 extern LogCircBuffer<512> logTelnetBuff;
 extern File fsUploadFile;
 extern String espHost;
+extern SunriseSim sunriseSim;
 
 #endif

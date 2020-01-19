@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<link href='style.css' rel='stylesheet' type='text/css'>
+	<title>Sunrise Simulator Timer</title>
+	<script>
+		function getSunriseConf(tableId){
+		if (1){
+			xmlhttp  =new XMLHttpRequest();
+			xmlhttp.open("POST","/getData",true);
+			xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xmlhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					var deviceDataArry = JSON.parse(this.responseText);
+					console.log(deviceDataArry);
+					populateDataTable(deviceDataArry);
+				}
+			};
+			xmlhttp.send(tableId);
+		}else{
+			populateDataTable(0);
+		}
+		}
+		function populateDataTable(inArray){
+			if (inArray.espData[0].Data==170) //stSunriseSimAct
+				document.getElementById(inArray.espData[0].Field).checked = true;
+			else
+				document.getElementById(inArray.espData[0].Field).checked = false;
+			if ((inArray.espData[1].Data&0b00000010)>0)
+				document.getElementById("stDayMonEna").checked = true;
+			else
+				document.getElementById("stDayMonEna").checked = false;
+			if ((inArray.espData[1].Data&0b00000100)>0)
+				document.getElementById("stDayTueEna").checked = true;
+			else
+				document.getElementById("stDayTueEna").checked = false;
+			if ((inArray.espData[1].Data&0b00001000)>0)
+				document.getElementById("stDayWedEna").checked = true;
+			else
+				document.getElementById("stDayWedEna").checked = false;
+			if ((inArray.espData[1].Data&0b00010000)>0)
+				document.getElementById("stDayThuEna").checked = true;
+			else
+				document.getElementById("stDayThuEna").checked = false;
+			if ((inArray.espData[1].Data&0b00100000)>0)
+				document.getElementById("stDayFriEna").checked = true;
+			else
+				document.getElementById("stDayFriEna").checked = false;
+			if ((inArray.espData[1].Data&0b01000000)>0)
+				document.getElementById("stDaySatEna").checked = true;
+			else
+				document.getElementById("stDaySatEna").checked = false;
+			if ((inArray.espData[1].Data&0b00000001)>0)
+				document.getElementById("stDaySunEna").checked = true;
+			else
+				document.getElementById("stDaySunEna").checked = false;
+			var hr = inArray.espData[2].Data;
+			var mint = inArray.espData[3].Data;
+			document.getElementById("tiSunriseSimStartTime").value = hr.substring(hr.length-2) + ":" + mint.substring(mint.length-2);
+			document.getElementById("tiRampOnDurMin").value = inArray.espData[4].Data;
+			document.getElementById("tiStayOnDurMin").value = inArray.espData[5].Data;
+			document.getElementById("rgbRampEnd").value = inArray.espData[6].Data;
+			document.getElementById("rgbEnd").value = inArray.espData[7].Data;
+		}
+		
+		function btnTestClick(){
+			xmlhttp = new XMLHttpRequest();
+			xmlhttp.open("POST","/sunriseSimTest",true);
+			xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			xmlhttp.send("StSunriseSimTest=0xAA");
+			xmlhttp.onreadystatechange = function(){
+				if(xmlhttp.readyState == 4 && xmlhttp.status==300){
+					var xmlResult = xmlhttp.responseText;
+					console.log("xmlhttp=" + xmlResult);
+				}else
+					console.log("xmlResult.status="+xmlhttp.status);
+		}
+	}
+		
+		function openNav() {
+			document.getElementById("mySidebar").style.width = "250px";
+			document.getElementById("main").style.marginLeft = "250px";
+		}
+	/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+		function closeNav() {
+			document.getElementById("mySidebar").style.width = "0";
+			document.getElementById("main").style.marginLeft = "0";
+		}
+	</script>
+</head>
+<body style = "background-color: #0090c1" onload="getSunriseConf('sunriseConf')">
+	<div id="mySidebar" class="sidebar">
+		<a href="javascript:void(0)" class="navCloseBtn" onclick="closeNav()">&times;</a>
+		<a href="index.html">Home</a>
+		<a href="rgb.html">RGB</a>
+		<a href="sunrise.html">Sunrise</a>
+		<a href="settings.html">Settings</a>
+		<a href="info.html">Info</a>
+	</div>
+	<div id="main">
+		<button class="navOpenBtn" onclick="openNav()">&#9776;</button>
+		<center>
+		<form action="saveSunriseSim" method="post">
+		<table border=1 id="sunriseConf">
+		<tr>
+			<td>Sunrise </td>
+			<td>
+				<label class="switch">
+				<input type="checkbox" id="stSunriseSimAct" name="stSunriseSimAct" >
+				<span class="slider round"></span>
+				</label>
+			</td>
+		</tr>
+		<tr>
+			<td colspan=2>
+				<div class="weekDays-selector">
+					<input type="checkbox" id="stDayMonEna" name="stDayMonEna" class="weekday" />
+					<label for="stDayMonEna">M</label>
+					<input type="checkbox" id="stDayTueEna" name="stDayTueEna" class="weekday" />
+					<label for="stDayTueEna">T</label>
+					<input type="checkbox" id="stDayWedEna" name="stDayWedEna" class="weekday" />
+					<label for="stDayWedEna">W</label>
+					<input type="checkbox" id="stDayThuEna" name="stDayThuEna" class="weekday" />
+					<label for="stDayThuEna">T</label>
+					<input type="checkbox" id="stDayFriEna" name="stDayFriEna" class="weekday" />
+					<label for="stDayFriEna">F</label>
+					<input type="checkbox" id="stDaySatEna" name="stDaySatEna" class="weekday" />
+					<label for="stDaySatEna">S</label>
+					<input type="checkbox" id="stDaySunEna" name="stDaySunEna" class="weekday" />
+					<label for="stDaySunEna">S</label>
+				</div>
+			</td>
+			
+		</tr>
+		<tr>
+			<td>Start Time</td>
+			<td><input type="time" id="tiSunriseSimStartTime" name="tiSunriseSimStartTime" value="13:30" required></td>
+		</tr>
+		<tr>
+			<td>Ramp On Duration</td>
+			<td><input type="number" style="width:60px" id="tiRampOnDurMin" name="tiRampOnDurMin" min="0" max="120" value="20" required>min</td>
+		</tr>
+		<tr>
+			<td>Stay On Duration</td>
+			<td><input type="number" style="width:60px" id="tiStayOnDurMin" name="tiStayOnDurMin" min="0" max="120" value="10" required>min</td>
+		</tr>
+		<tr>
+			<td>Mid Colour</td>
+			<td><input type="color" id="rgbRampEnd" name="rgbRampEnd" value="#c45733"></td>
+		</tr>
+		<tr>
+			<td>End Colour</td>
+			<td><input type="color" id="rgbEnd" name="rgbEnd" value="#ff8e2b"></td>
+		</tr>
+		<tr>
+			<td colspan=2><center>
+				<button id="saveBtn" name="saveSunriseSim" value="Save">Save</button>
+				<button id="cancelBtn" name="saveSunriseSim" value="Cancel">Cancel</button>
+			</center></td>
+		</tr>
+		</table>
+		</form>
+		<br>
+		<button class="genButton" onclick="btnTestClick()">Test</button><br>
+	</div>
+</body>
+</html>

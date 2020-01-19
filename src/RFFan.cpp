@@ -45,6 +45,7 @@ void RFFan::setSequence(bool fanSeqReq[6][13]){
 
 void RFFan::sendCmd(uint8 cmd){
   //TODO: disable ISR
+  digitalWrite(pinRFSend, LOW);
   for (int i=0;i<NrCmdRepeatCnt;++i)
   {
     for (int j=0;j<13;++j)
@@ -54,6 +55,7 @@ void RFFan::sendCmd(uint8 cmd){
     delay(10);
     // if insufficient try using ESP.getCycleCount()
   }
+  digitalWrite(pinRFSend, HIGH);
   stdOut("RF sent " + cmd);
 }
 

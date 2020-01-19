@@ -8,5 +8,6 @@
 #include <RFFan.h>
 #include <LogCircBuffer.h>
 #include <serviceFcn.h>
+#include <SunriseSim.h>
 
 #endif
