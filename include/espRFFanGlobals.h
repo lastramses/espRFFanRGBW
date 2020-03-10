@@ -5,8 +5,8 @@
 #define pinBLUE 4 // D2 RGBW Blue Channel
 #define pinGREEN 0 // D3 RGBW Green Channel
 #define pinRED 14 // D5 RGBW Red Channel
-#define pinRFSend 2 // D4, pwm out tx pin
-#define pinIFTTT 12 // D6, pwm input to send an ifttt
+#define pinRFSend 12 // D6, pwm out tx pin
+#define pinIFTTT 2 // D4, pwm input to send an ifttt
 #define pinRFLight 13 // D7, digital input to toggle light
 #define pinAutoSchedEna 15 // D8, dig in enable auto fan schedule
 //#define pinSwSpare 4 // D2, spare pwm/in/out

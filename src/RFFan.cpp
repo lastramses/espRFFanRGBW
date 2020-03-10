@@ -53,9 +53,9 @@ void RFFan::sendCmd(uint8 cmd){
       sendRFFanBit(fanSequence[cmd][j]);
     }
     delay(10);
-    // if insufficient try using ESP.getCycleCount()
+    // if insufficient try using ESP.getCycleCount() for more accurate timing
   }
-  digitalWrite(pinRFSend, HIGH);
+  digitalWrite(pinRFSend, LOW);
   stdOut("RF sent " + cmd);
 }
 

@@ -62,7 +62,7 @@ void ICACHE_RAM_ATTR isrIFTTT(){
   stISREna[2] = besFALSE;
   tiISRDis[2] = millis();
   stISRReq[2] = besTRUE;
-  stdOut("isrD6 - bottom push - received");
+  stdOut("isrD4 - bottom push - received");
 }
 
 void ICACHE_RAM_ATTR isrRFLight(){
@@ -121,17 +121,15 @@ void isrFlagProcess(){
 
 void confPins(){
   pinMode(pinOnBoardLED, OUTPUT);
-  pinMode(pinAutoSchedEna, INPUT_PULLUP); //top sw
+  pinMode(pinAutoSchedEna, INPUT_PULLUP); // swt #1
   attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
-  //pinMode(pinSwSpare, INPUT_PULLUP); //bottom sw
-  //attachInterrupt(digitalPinToInterrupt(pinSwSpare), isrD2, CHANGE);
-  pinMode(pinIFTTT, INPUT_PULLUP); //bottom push iftttButton
-  attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
-  pinMode(pinRFLight, INPUT_PULLUP); //top push light
-  attachInterrupt(digitalPinToInterrupt(pinRFLight), isrRFLight, FALLING);
+  //pinMode(pinIFTTT, INPUT_PULLUP); //swt #3 push iftttButton,, set in the ocnfigWIFIsince pins are shared
+  //attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
+  pinMode(pinRFLight, INPUT_PULLUP); //swt #2 push button RF fan light
+  attachInterrupt(digitalPinToInterrupt(pinRFLight), isrRFLight, FALLING); // 
   pinMode(pinRFSend, OUTPUT);
-  digitalWrite(pinRFSend, HIGH); // TODO: probably has to be high to reduce current cons
-
+  digitalWrite(pinRFSend, LOW); // has to low to avoid driving RF permanenetly
+  
   pinMode(pinRED,OUTPUT);
   analogWrite(pinRED,0); //10bit pwm
   pinMode(pinGREEN,OUTPUT);
@@ -224,6 +222,9 @@ void confWIFI(){
   }
   SPIFFS.remove("/wifiConnFail");//remove file as user should have configured the ssid
   digitalWrite(pinOnBoardLED,HIGH); //leave led on, same pin used by red channel
+  pinMode(pinIFTTT, INPUT_PULLUP); //bottom push iftttButton, shared with pinOnBoardLED
+  attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
+  
   stdOut("\r\nWiFi connected");
 }
 
