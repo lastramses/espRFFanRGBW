@@ -13,7 +13,6 @@
 
 #define pinOnBoardLED 2 // D4, dig out onboard blue led
 
-
 #define besTRUE 0xAA
 #define besFALSE 0x55
 #define besON 0xAA
@@ -37,5 +36,6 @@ extern LogCircBuffer<512> logTelnetBuff;
 extern File fsUploadFile;
 extern String espHost;
 extern SunriseSim sunriseSim;
+extern uint8_t stRGBWAct;
 
 #endif

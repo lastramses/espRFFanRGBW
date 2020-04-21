@@ -31,6 +31,7 @@ uint16_t tiISRDebMsec = 200; //debounce (disable isr on pin) time
 uint8_t stISRReq[4] = {besFALSE, besFALSE, besFALSE, besFALSE}; //flag to process isr in main loop
 File fsUploadFile; //used by fileuploadstream
 SunriseSim sunriseSim;
+uint8_t stRGBWAct = besOFF;
 
 String espHost = "espRFFan";
 String confSSID;
@@ -238,6 +239,7 @@ void configHttpServer(){
   stdOut("Starting web server on ");
   stdOut(WiFi.localIP().toString());
   httpServer.on("/FanCmdReq", HTTP_POST,httpServerHandleFanCmdReq);
+  httpServer.on("/rgbwCmdReq",HTTP_POST,httpServerHandleRgbwCmdReq);
   httpServer.on("/getData", HTTP_POST,httpServerHandleGetData);
   httpServer.on("/saveSunriseSim",HTTP_POST,httpServerHandleSaveSunrise);
   httpServer.on("/sunriseSimTest",HTTP_POST,[](){

@@ -47,6 +47,27 @@ void httpServerHandleFanCmdReq(){
     stdOut("req from " + httpServer.client().remoteIP().toString() + ", Pwr Req");
 }
 
+void httpServerHandleRgbwCmdReq(){
+  if (httpServer.hasArg("stRGBWActReq")==true){
+    if (httpServer.arg("stRGBWActReq")=="0xAA"){
+      stRGBWAct = besON;
+    }else{
+      stRGBWAct = besOFF;
+      analogWrite(pinRED,0); //10bit pwm
+      analogWrite(pinGREEN,0); //10bit pwm
+      analogWrite(pinBLUE,0); //10bit pwm
+      analogWrite(pinWHITE,0); //10bit pwm
+    }
+    httpServer.send(200, "text/html", String(stRGBWAct));
+  }else{
+    stRGBWAct = besOFF;
+    httpServer.sendHeader("Location","/");
+    httpServer.send(404);
+    //TODO: register incorrect request time, source ip
+  }
+  stdOut("req from " + httpServer.client().remoteIP().toString() + ", RGBWCmdReq");
+}
+
 void httpServerHandleGetData(){
   if(httpServer.hasArg("fileList")==true){
     String jsonFileList = "{\"espData\":[{\"Field\":\"File Name\",\"Data\":\"Size\"},";
@@ -59,6 +80,11 @@ void httpServerHandleGetData(){
     jsonFileList.remove(jsonFileList.length()-1,1); //remove last ","
     jsonFileList += "]}";
     httpServer.send(200, "text/html", jsonFileList);
+  }else if(httpServer.hasArg("stRGBWAct")==true){
+    if (stRGBWAct==besON)
+      httpServer.send(200, "text/html", "0xAA");
+    else
+      httpServer.send(200, "text/html", "0x55");
   }else if(httpServer.hasArg("sunriseConf")==true){
     String tmp = "0";
     String jsonDeviceData="{\"espData\":[{\"Field\":\"stSunriseSimAct\",\"Data\":\"" + String(sunriseSim.getStSunriseSimEna()) + "\"},"
@@ -300,10 +326,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
   switch (type) {
     case WStype_DISCONNECTED: {
       stdOut(num + "Disconnected!");
-      analogWrite(pinRED,0); //10bit pwm
-      analogWrite(pinGREEN,0); //10bit pwm
-      analogWrite(pinBLUE,0); //10bit pwm
-      analogWrite(pinWHITE,0); //10bit pwm
+      if (stRGBWAct==besOFF){
+        analogWrite(pinRED,0); //10bit pwm
+        analogWrite(pinGREEN,0); //10bit pwm
+        analogWrite(pinBLUE,0); //10bit pwm
+        analogWrite(pinWHITE,0); //10bit pwm
+      }
     }
     break;
 
@@ -320,7 +348,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       Serial.printf("[%u] get Text: %s\n", num, payload);
       String colourData = (const char *)payload;
       //stdOut(num + " TEXT:" + String((char *)payload));
-      if (colourData.substring(0,1)=="#"){
+      if (stRGBWAct==besON && colourData.substring(0,1)=="#"){
         uint8_t arrRGBweb[3];
         for (int i=0;i<3;++i)
         {
@@ -338,17 +366,11 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         analogWrite(pinGREEN,((rgbwWeb&0x00FF0000)>>16)<<2); //10bit pwm
         analogWrite(pinBLUE,((rgbwWeb&0x0000FF00)>>8)<<2); //10bit pwm
         analogWrite(pinWHITE,((rgbwWeb&0x000000FF))<<2); //10bit pwm
-
-        //analogWrite(pinRED,arrRGBweb[0]<<2); //10bit pwm
-        //analogWrite(pinGREEN,arrRGBweb[1]<<2); //10bit pwm
-        //analogWrite(pinBLUE,arrRGBweb[2]<<2); //10bit pwm
-        //analogWrite(pinWHITE,0); //10bit pwm
-      }
-
       // echo data back to browser
       //webScktSrv.sendTXT(num, payload, length);
       // send data to all connected clients
       //webScktSrv.broadcastTXT(payload, length);
+      }
     }
     break;
 
