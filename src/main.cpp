@@ -9,6 +9,8 @@
 #include "serviceFcn.h"
 #include "HttpServerHandles.h"
 
+
+
 void isrTickDiagFunc();
 int sendIFTTTCmd();
 
@@ -21,6 +23,9 @@ WebSocketsServer webScktSrv(81);
 
 WiFiServer telnetServer(23);
 WiFiClient telnetClient;
+
+Adafruit_BME280 bme280;
+bool stBME280Cnnct;
 
 LogCircBuffer<512> logTelnetBuff;
 uint8_t stTick60Req = besFALSE;
@@ -43,7 +48,7 @@ RFFan fanHarborBreeze(580,330,260,640,8);
 RFFan fanCasablanca(660,410,300,760,8);
 
 void ICACHE_RAM_ATTR isrAutoSchedEna(){
-  detachInterrupt(digitalPinToInterrupt(pinAutoSchedEna));
+  //detachInterrupt(digitalPinToInterrupt(pinAutoSchedEna));
   stISREna[0] = besFALSE;
   tiISRDis[0] = millis();
   stISRReq[0] = besTRUE;
@@ -85,7 +90,7 @@ void isrTick60sFunc(){
 
 void ICACHE_RAM_ATTR isrDebounce(){
   if ( (stISREna[0]==besFALSE) && (abs(millis()-tiISRDis[0])>tiISRDebMsec) ){
-    attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
     stISREna[0] = besTRUE;
   }
   if ( (stISREna[1]==besFALSE) && (abs(millis()-tiISRDis[1])>tiISRDebMsec) ){
@@ -122,10 +127,10 @@ void isrFlagProcess(){
 
 void confPins(){
   pinMode(pinOnBoardLED, OUTPUT);
-  pinMode(pinAutoSchedEna, INPUT_PULLUP); // swt #1
-  attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
-  //pinMode(pinIFTTT, INPUT_PULLUP); //swt #3 push iftttButton,, set in the ocnfigWIFIsince pins are shared
-  //attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
+  //pinMode(pinAutoSchedEna, INPUT_PULLUP); // swt #1
+  //attachInterrupt(digitalPinToInterrupt(pinAutoSchedEna), isrAutoSchedEna, CHANGE);
+  pinMode(pinIFTTT, INPUT_PULLUP); //swt #3 push iftttButton,, set in the configWIFIsince pins are shared
+  attachInterrupt(digitalPinToInterrupt(pinIFTTT), isrIFTTT, FALLING);
   pinMode(pinRFLight, INPUT_PULLUP); //swt #2 push button RF fan light
   attachInterrupt(digitalPinToInterrupt(pinRFLight), isrRFLight, FALLING); // 
   pinMode(pinRFSend, OUTPUT);
@@ -139,6 +144,19 @@ void confPins(){
   analogWrite(pinBLUE,0); //10bit pwm
   pinMode(pinWHITE,OUTPUT);
   analogWrite(pinWHITE,0); //10bit pwm
+}
+
+void confI2C(){
+  Wire.begin(4, 5); //SDA, SCL (D2,D1)
+  stBME280Cnnct = bme280.begin(0x76);
+  if (!stBME280Cnnct){
+    stdOut("Could not find a valid BME280 sensor on 0x76");
+    stBME280Cnnct = bme280.begin(0x77);
+    if (!stBME280Cnnct) 
+      stdOut("Could not find a valid BME280 sensor on 0x77");
+  }
+  stdOut("sensorID = " + String(bme280.sensorID()));
+  bme280.seaLevelForAltitude(0, 1015.5);
 }
 
 void confSPIFFS(){
@@ -330,11 +348,20 @@ int sendIFTTTCmd(){
   return retVal;
 }
 
+int printBME280Data(){
+  if (stBME280Cnnct)
+    stdOut(" T=" + String(bme280.readTemperature()) + "C\r\n" +
+      " P=" + String(bme280.readPressure()) + "kPa\r\n" +
+      " H=" + String(bme280.readHumidity()) + "%");
+  return 0;
+}
+
 void setup() {
   confPins();
   Serial.begin(115200);
   delay(50);
   stdOut("\r\nSerial started");
+  confI2C();
   confSPIFFS();
   confWIFI();
   configHttpServer();
@@ -343,6 +370,7 @@ void setup() {
   tick1s.attach(1,isrTick1sFunc);
   configTime(-5*3600, 0*3600, "pool.ntp.org", "time.nist.gov");
 
+  
   //if (espTime.isSync()==false){ //sync failed at boot, dont start auto schedule
   //  fanAutoSch.setAutoSchEna(false);
   //}
@@ -368,11 +396,30 @@ bool minTurnFlag(){
   //if ((fanAutoSch.getStAutoSch()==true) && (digitalRead(pinAutoSchedEna) == LOW))
   //  isAutoSchedTime();
   stTick60Req = besFALSE;
-  printLocalTime();
-  if (sunriseSim.getStSunriseSimEna()==besTRUE && isTime(sunriseSim.getTiSunriseDaysEna(),
+  if(WiFi.getMode() !=WIFI_STA){ //in case of electricity outage, esp will come up faster than wifi router and reset to AP mode. To avoid manual power reset device will check if the confSSID is in range and reset.
+    //scan for networks, if confSSID in range, restart
+    int nWifi = WiFi.scanNetworks();
+    if (nWifi == 0)
+      stdOut("no wifi networks found");
+    else{
+      for (int i = 0; i < nWifi; ++i){
+        if(WiFi.SSID(i) == confSSID){ //is confSSID in range?
+          stdOut(confSSID + " found, reseting esp");
+          ESP.restart();
+        }
+      }
+    }
+  }else{
+    if (bme280.readTemperature()>50)
+      sendIFTTTCmd();
+    
+    printLocalTime();
+    if (sunriseSim.getStSunriseSimEna()==besTRUE && isTime(sunriseSim.getTiSunriseDaysEna(),
       sunriseSim.getTiSunriseHrStrt(),sunriseSim.getTiSunriseMinStrt())==besTRUE){
-    sunriseSim.Start();
-  }
+      sunriseSim.Start();
+    }
+  }  
+  printBME280Data();
   //TODO: check if time is greater than curent time and force rgbw=0
   return 0;
 }

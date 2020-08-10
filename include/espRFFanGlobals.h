@@ -1,15 +1,15 @@
 #ifndef ESPRFFANGLOABLSDEFINE_H
 #define ESPRFFANGLOABLSDEFINE_H
 
-#define pinWHITE 5 // D1 RGBW White Channel
-#define pinBLUE 4 // D2 RGBW Blue Channel
+#define pinWHITE 15 // D8 RGBW White Channel
+#define pinBLUE 13 // D7 RGBW Blue Channel
 #define pinGREEN 0 // D3 RGBW Green Channel
 #define pinRED 14 // D5 RGBW Red Channel
 #define pinRFSend 12 // D6, pwm out tx pin
+//#define pinSCK 5 // D1 I2C clk
+//#define pinSDA 4 // D2 I2C data
 #define pinIFTTT 2 // D4, pwm input to send an ifttt
-#define pinRFLight 13 // D7, digital input to toggle light
-#define pinAutoSchedEna 15 // D8, dig in enable auto fan schedule
-//#define pinSwSpare 4 // D2, spare pwm/in/out
+#define pinRFLight 16 // D0, digital input to toggle light
 
 #define pinOnBoardLED 2 // D4, dig out onboard blue led
 
@@ -28,6 +28,7 @@
 
 #include <includes.h>
 
+extern Adafruit_BME280 bme280;
 extern RFFan fanHarborBreeze;
 extern RFFan fanCasablanca;
 extern ESP8266WebServer httpServer;

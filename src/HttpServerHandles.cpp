@@ -85,6 +85,12 @@ void httpServerHandleGetData(){
       httpServer.send(200, "text/html", "0xAA");
     else
       httpServer.send(200, "text/html", "0x55");
+  }else if(httpServer.hasArg("stTemp")==true){
+      httpServer.send(200, "text/html", "T="+String(bme280.readTemperature()));
+  }else if(httpServer.hasArg("stPres")==true){
+      httpServer.send(200, "text/html", "P="+String(bme280.readPressure()/1000));
+  }else if(httpServer.hasArg("stHum")==true){
+      httpServer.send(200, "text/html", "H="+String(bme280.readHumidity()));
   }else if(httpServer.hasArg("sunriseConf")==true){
     String tmp = "0";
     String jsonDeviceData="{\"espData\":[{\"Field\":\"stSunriseSimAct\",\"Data\":\"" + String(sunriseSim.getStSunriseSimEna()) + "\"},"

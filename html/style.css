@@ -68,6 +68,14 @@ body {
   .sidebar a {font-size: 18px;}
 }
 
+.genButton {
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 15px;
+  border: none;
+  background-color: white;
+}
+
 /* Slider Checkbox */
  /* The switch - the box around the slider */
 .switch {

@@ -5,6 +5,9 @@
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 #include <FS.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 #include <RFFan.h>
 #include <LogCircBuffer.h>
 #include <serviceFcn.h>

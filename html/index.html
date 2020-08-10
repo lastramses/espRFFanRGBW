@@ -6,6 +6,7 @@
 	
 	<title>esp RF FAN Control</title>
 	<script>
+
 	function btnClick(typeFan,cmdFan){
 		xmlhttp =new XMLHttpRequest();
 		xmlhttp.open("POST","/FanCmdReq",true);
@@ -19,6 +20,41 @@
 				console.log("xmlResult.status="+xmlhttp.status);
 		}
 	}
+	function getTemp(){
+		xmlhttp =new XMLHttpRequest();
+		xmlhttp.open("POST","/getData",true);
+		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		console.log("post req sent to temp read");
+		xmlhttp.onreadystatechange = function(){
+			if(xmlhttp.readyState == 4 && xmlhttp.status==200){
+				var xmlResult = xmlhttp.responseText;
+				var lblT = document.getElementById("lblTemp");
+				lblT.innerText = "T: " + xmlResult.substr(2) + "C";
+				console.log("xmlResult=" + xmlResult);
+				console.log("xmlResult returned positive");
+				getPres();
+			}else
+				console.log("xmlhttp not returned, xmlhttp.status: " + xmlhttp.status);
+		}
+		xmlhttp.send("stTemp");
+	}
+	function getPres(){
+		xmlhttp =new XMLHttpRequest();
+		xmlhttp.open("POST","/getData",true);
+		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		console.log("post req sent to pressure read");
+		xmlhttp.onreadystatechange = function(){
+			if(xmlhttp.readyState == 4 && xmlhttp.status==200){
+				var xmlResult = xmlhttp.responseText;
+				var lblT = document.getElementById("lblP");
+				lblT.innerText = "P: " + xmlResult.substr(2) + "kPa";
+				console.log("xmlResult=" + xmlResult);
+				console.log("xmlResult returned positive");
+			}else
+				console.log("xmlhttp not returned, xmlhttp.status: " + xmlhttp.status);
+		}
+		xmlhttp.send("stPres");
+	}
 	function openNav() {
 		document.getElementById("mySidebar").style.width = "250px";
 		document.getElementById("main").style.marginLeft = "250px";
@@ -31,7 +67,7 @@
 	</script>
 </head>
 
-<body style = "background-color: #0090c1">
+<body style = "background-color: #0090c1" onload="getTemp()">
 	<div id="mySidebar" class="sidebar">
 		<a href="javascript:void(0)" class="navCloseBtn" onclick="closeNav()">&times;</a>
 		<a href="index.html">Home</a>
@@ -42,23 +78,26 @@
 	</div>
 	<div id="main">
 		<button class="navOpenBtn" onclick="openNav()">&#9776;</button>
+		<p align="right">
+		<label id="lblTemp">T: C</label><br>
+		<label id="lblP">P: kPa</label>
+		</p>
 		<br><center>
-		
 		<table cellpadding="5" border="1"><tbody>
 		<tr><td>Harbor Breeze<br>Living Room</td>
-		<td><button class="genButton" onclick="btnClick('HarborBreezeReq','Light')">Light</button><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanOff')">Fan Off</button><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanReverse')">Fan Reverse</button><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanLow')">Fan Low</button><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanMedium')">Fan Medium</button><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanHigh')">Fan High</button><br>
+		<td align="center"><button class="genButton" onclick="btnClick('HarborBreezeReq','Light')">&#9788;</button><br><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanReverse')">&#8634;</button><br><br>
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanOff')">&#10799;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanLow')">&#9866;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanMedium')">&#9868;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanHigh')">&#9776;</button>
 		<tr><td>Casablanca<br>Bedroom</td>
-		<td><button class="genButton" onclick="btnClick('CasablancaReq','Light')">Light</button><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanOff')">Fan Off</button><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanReverse')">Fan Reverse</button><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanLow')">Fan Low</button><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanMedium')">Fan Medium</button><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanHigh')">Fan High</button><br>
+		<td align="center"><button class="genButton" onclick="btnClick('CasablancaReq','Light')">&#9788;</button><br><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanReverse')">&#8634;</button><br><br>
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanOff')">&#10799;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanLow')">&#9866;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanMedium')">&#9868;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('CasablancaReq','FanHigh')">&#9776;</button>
 		</tbody></table>
 		</center>
 	</div>

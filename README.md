@@ -8,7 +8,9 @@ Main page interfacing with RF Fan is simple buttons:
 ![main page](img/rfFanMainPage.png "main page")
 
 **RGBW and Sunrise Simulation**  
-RGBW LED strip is driven by 4 digital output pins. The RGBW color selection through RGB wheel feature (via websockets) is copied from [jaames](https://github.com/jaames/iro.js) repository and modified with simple conversion from RGB to RGBW. Sunrise feature uses internet time to start a counter on configured time and day, ramps saturation from 0 to 50% to 1st selected color, then ramps from first to second color by linearly interpolating between the tow colors. Intention is to create fast ramp for brightness and slowly increase brightness to final set color. In conjunction to the software configuration an On/Off switch is used to enable/disable auto-scheduling of sunrise feature.  
+RGBW LED strip is driven by 4 digital output pins. The RGBW color selection through RGB wheel feature (via websockets) is copied from [jaames](https://github.com/jaames/iro.js) repository and modified with simple conversion from RGB to RGBW.  
+![ramp between 2 colors](img/rgbSelect.png "rgbSelect")  
+Sunrise feature uses internet time to start a counter on configured time and day, ramps saturation from 0 to 50% to 1st selected color, then ramps from first to second color by linearly interpolating between the tow colors. Intention is to create fast ramp for brightness and slowly increase brightness to final set color. In conjunction to the software configuration an On/Off switch is used to enable/disable auto-scheduling of sunrise feature.  
 Ramp function simply behaves as in the image below:  
 ![ramp between 2 colors](img/sunriseRamp.png "ramp")  
 Configuration page for sunruse schedule:  
