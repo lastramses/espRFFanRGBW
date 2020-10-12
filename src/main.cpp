@@ -4,12 +4,11 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <Ticker.h>
+#include <EspSaveCrash.h>
 #include "espRFFanGlobals.h"
 #include "LocalTime.h"
 #include "serviceFcn.h"
 #include "HttpServerHandles.h"
-
-
 
 void isrTickDiagFunc();
 int sendIFTTTCmd();
@@ -17,6 +16,7 @@ int sendIFTTTCmd();
 Ticker tick1s; //not as accurate as isr!
 Ticker tick60s; //not as accurate as isr!
 
+EspSaveCrash SaveCrash;
 ESP8266WebServer httpServer(80);
 ESP8266HTTPUpdateServer httpUpdater;
 WebSocketsServer webScktSrv(81);
@@ -304,6 +304,8 @@ void ICACHE_RAM_ATTR telnetProcess(){
         stdOut("del req=\""+tmp+"\"");
         SPIFFS.remove("/" + tmp);
       }
+    }else if(charRead==115){ //=s
+      SaveCrash.print(telnetClient);
     }
     logTelnetBuff.write(String(charRead));
   }
@@ -396,6 +398,7 @@ bool minTurnFlag(){
   //if ((fanAutoSch.getStAutoSch()==true) && (digitalRead(pinAutoSchedEna) == LOW))
   //  isAutoSchedTime();
   stTick60Req = besFALSE;
+  static uint8_t ctrMin = 0;
   if(WiFi.getMode() !=WIFI_STA){ //in case of electricity outage, esp will come up faster than wifi router and reset to AP mode. To avoid manual power reset device will check if the confSSID is in range and reset.
     //scan for networks, if confSSID in range, restart
     int nWifi = WiFi.scanNetworks();
@@ -412,14 +415,14 @@ bool minTurnFlag(){
   }else{
     if (bme280.readTemperature()>50)
       sendIFTTTCmd();
-    
-    printLocalTime();
+    if ((ctrMin%5)==0)
+      printLocalTime();
     if (sunriseSim.getStSunriseSimEna()==besTRUE && isTime(sunriseSim.getTiSunriseDaysEna(),
       sunriseSim.getTiSunriseHrStrt(),sunriseSim.getTiSunriseMinStrt())==besTRUE){
       sunriseSim.Start();
     }
   }  
-  printBME280Data();
+  //printBME280Data();
   //TODO: check if time is greater than curent time and force rgbw=0
   return 0;
 }
