@@ -34,4 +34,4 @@ uint16_t LogCircBuffer<bufferSize>::getBuffDataSize(){
 	return buffDataUsed;
 }
 
-template class LogCircBuffer<512>;
+template class LogCircBuffer<2048>;

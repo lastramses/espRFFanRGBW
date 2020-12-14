@@ -33,9 +33,22 @@ void printLocalTime(){
   time (&rawtime);
   timeinfo = localtime (&rawtime);
 
-  strftime (buffer,80," %d %B %Y %H:%M:%S ",timeinfo);
+  strftime(buffer,80,"%d/%m/%y %H:%M:%S ",timeinfo);
   stdOut(buffer);
   
+}
+
+time_t getTime(){
+  time_t rawtime;
+  time (&rawtime);
+  return rawtime;
+}
+
+String timeToStr(time_t ti){
+  char buffer[80];
+  struct tm * timeinfo = localtime(&ti);
+  strftime(buffer,80,"%d/%m/%y %H:%M:%S ",timeinfo);
+  return String(buffer);
 }
 
 uint8_t isTime(uint8_t day, uint8_t hour, uint8_t minute){

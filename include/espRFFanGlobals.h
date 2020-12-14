@@ -33,10 +33,15 @@ extern RFFan fanHarborBreeze;
 extern RFFan fanCasablanca;
 extern ESP8266WebServer httpServer;
 extern WebSocketsServer webScktSrv;
-extern LogCircBuffer<512> logTelnetBuff;
+extern LogCircBuffer<2048> logTelnetBuff;
 extern File fsUploadFile;
 extern String espHost;
 extern SunriseSim sunriseSim;
 extern uint8_t stRGBWAct;
+extern time_t bootTime;
+
+// identifier-is-undefined-setenv-tzset 
+_VOID      _EXFUN(tzset,	(_VOID));
+int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
 
 #endif

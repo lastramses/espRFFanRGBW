@@ -10,6 +10,7 @@
 #include <Adafruit_BME280.h>
 #include <RFFan.h>
 #include <LogCircBuffer.h>
+#include "LocalTime.h"
 #include <serviceFcn.h>
 #include <SunriseSim.h>
 

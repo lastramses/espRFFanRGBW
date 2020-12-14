@@ -6,7 +6,6 @@
 #include <Ticker.h>
 #include <EspSaveCrash.h>
 #include "espRFFanGlobals.h"
-#include "LocalTime.h"
 #include "serviceFcn.h"
 #include "HttpServerHandles.h"
 
@@ -27,7 +26,7 @@ WiFiClient telnetClient;
 Adafruit_BME280 bme280;
 bool stBME280Cnnct;
 
-LogCircBuffer<512> logTelnetBuff;
+LogCircBuffer<2048> logTelnetBuff;
 uint8_t stTick60Req = besFALSE;
 uint8_t stTick1Req = besFALSE;
 unsigned long tiISRDis[4] = {0,0,0,0}; //time stamp a wich the isr was disabled
@@ -37,6 +36,7 @@ uint8_t stISRReq[4] = {besFALSE, besFALSE, besFALSE, besFALSE}; //flag to proces
 File fsUploadFile; //used by fileuploadstream
 SunriseSim sunriseSim;
 uint8_t stRGBWAct = besOFF;
+time_t bootTime;
 
 String espHost = "espRFFan";
 String confSSID;
@@ -120,6 +120,7 @@ void isrFlagProcess(){
     stISRReq[2] = besFALSE;
   }
   if (stISRReq[3] == besTRUE){
+    stdOut("isr light req");
     fanCasablanca.sendCmd(0);
     stISRReq[3] = besFALSE;
   }
@@ -213,7 +214,7 @@ void confSPIFFS(){
 }
 
 void confWIFI(){
-  wifi_set_macaddr(STATION_IF, confMACAddr);
+  //wifi_set_macaddr(STATION_IF, confMACAddr);
   stdOut("MAC: " + WiFi.macAddress());
   stdOut("WiFi connecting to " + String(confSSID));
   WiFi.mode(WIFI_STA);
@@ -265,7 +266,7 @@ void configHttpServer(){
     httpServer.send(200, "text/plain", "{\"sunrise simulation started\"}");
   });
   httpServer.on("/fileupload", HTTP_GET, httpServerHandleFileUpload);
-  httpServer.on("/fileuploadstream", HTTP_POST, [](){
+  httpServer.on("/fileupload", HTTP_POST, [](){
     httpServer.send(200);
     }, httpServerHandleFileUploadStream);
   httpServer.on("/saveSSID", HTTP_POST,httpServerHandleSaveSSID);
@@ -370,9 +371,11 @@ void setup() {
 
   tick60s.attach(60,isrTick60sFunc);//tickerObj.attach(timeInSecs,isrFunction)
   tick1s.attach(1,isrTick1sFunc);
-  configTime(-5*3600, 0*3600, "pool.ntp.org", "time.nist.gov");
-
   
+  //configTime(-5*3600, 0*3600, "pool.ntp.org", "time.nist.gov");
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  setenv("TZ","EST5EDT",1);
+  tzset();
   //if (espTime.isSync()==false){ //sync failed at boot, dont start auto schedule
   //  fanAutoSch.setAutoSchEna(false);
   //}
@@ -399,6 +402,7 @@ bool minTurnFlag(){
   //  isAutoSchedTime();
   stTick60Req = besFALSE;
   static uint8_t ctrMin = 0;
+  ctrMin++;
   if(WiFi.getMode() !=WIFI_STA){ //in case of electricity outage, esp will come up faster than wifi router and reset to AP mode. To avoid manual power reset device will check if the confSSID is in range and reset.
     //scan for networks, if confSSID in range, restart
     int nWifi = WiFi.scanNetworks();
@@ -413,6 +417,10 @@ bool minTurnFlag(){
       }
     }
   }else{
+    if (bootTime==0){ //not intialized
+      bootTime = getTime();
+    }
+
     if (bme280.readTemperature()>50)
       sendIFTTTCmd();
     if ((ctrMin%5)==0)

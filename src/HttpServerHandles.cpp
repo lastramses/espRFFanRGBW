@@ -106,6 +106,7 @@ void httpServerHandleGetData(){
     String jsonDeviceData="{\"espData\":[{\"Field\":\"Host Name\",\"Data\":\"" + espHost + "\"},"
     "{\"Field\":\"Device IP\",\"Data\":\"" + WiFi.localIP().toString() + "\"},"
     "{\"Field\":\"Device MAC Address\",\"Data\":\"" + WiFi.macAddress() + "\"},"
+    "{\"Field\":\"Boot Time\",\"Data\":\"" + timeToStr(bootTime) + "\"},"
     "{\"Field\":\"WiFi RSSI\",\"Data\":\"" + String(WiFi.RSSI()) + "\"},"
     "{\"Field\":\"Free Heap\",\"Data\":\"" + String(ESP.getFreeHeap()) + "\"},"
     "{\"Field\":\"Core Version\",\"Data\":\"" + ESP.getCoreVersion() + "\"},"
