@@ -1,0 +1,343 @@
+<!-- https://raw.githubusercontent.com/lastramses/espRFFanRGBW/master/html/sunrise.html -->
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<title>Sunrise Simulator Calculator</title>
+	<script>
+		function rgbStr2Arr(rgb){
+			r=parseInt("0x" + rgb[1] + rgb[2]);
+			g=parseInt("0x" + rgb[3] + rgb[4]);
+			b=parseInt("0x" + rgb[5] + rgb[6]);
+			return [r,g,b];
+		}
+		function rgb2hsl(rgb){
+			cmin = Math.min(rgb[0],rgb[1],rgb[2]);
+			cmax = Math.max(rgb[0],rgb[1],rgb[2]);
+			delta = cmax - cmin;
+			if (delta == 0)
+				h = 0;
+			else if (cmax == r)
+				h = (((g - b) / delta) % 6)*255/6;
+			else if (cmax == g)
+				h = ((b - r) / delta + 2)*255/6;
+			else
+				h = ((r - g) / delta + 4)*255/6;
+			h = h.toFixed(0)
+			l = Math.floor((cmax + cmin) / 2);
+			if (delta == 0)
+				s = 0;
+			else
+				s = Math.floor(delta / Math.max(1 - Math.abs((2 * l)/255 - 1),1));
+			return [h,s,l,cmin,cmax,delta];
+		}
+		function hue2rgb(p,q,t){
+			if (t<0)
+				t += 1;
+			else if (t>1)
+				t -= 1;
+			if (t < 1/6)
+				retVal = p + (q-p)*6*t;
+			else if (t < 0.5)
+				retVal = q;
+			else if (t < 2/3)
+				retVal = p + (q-p)*(2/3-t)*6;
+			else
+				retVal = p;
+			return retVal;
+		}
+		function hsl2rgb(hsl){
+			h = hsl[0]/255;
+			s = hsl[1]/255;
+			l = hsl[2]/255;
+			p=0;
+			q=0;
+			if (s==0){
+				r=l*255;
+				g=l*255;
+				b=l*255;
+			}else{
+				if (l<0.5)
+					q = l*(1+s);
+				else
+					q = l+s-l*s;
+				p = 2*l-q;
+				r=Math.floor(hue2rgb(p,q,h+0.33333)*255);
+				g=Math.floor(hue2rgb(p,q,h)*255);
+				b=Math.floor(hue2rgb(p,q,h-0.33333)*255);
+			}
+			return [r,g,b,q.toFixed(3),p.toFixed(3)];
+		}
+		function RGB2HSL(strIn){
+			return rgb2hsl(rgbStr2Arr(strIn));
+		}
+		function clearTable(){
+			var tableData = document.getElementById("tblSunriseCalc");
+			var nrRow = tableData.rows.length;
+			for (var i = 2; i < nrRow; i++) {
+				tableData.deleteRow(2);
+			}
+		}
+		function calcVals(){
+			clearTable();
+			lstTbl = ["tblMidColorRGBtoHSL","tblEndColorRGBtoHSL"];
+			lstColors = ["rgbRampEnd","rgbEnd"];
+			for (iTbl=0;iTbl<lstTbl.length;++iTbl){
+				RGB = rgbStr2Arr(document.getElementById(lstColors[iTbl]).value);
+				tblRGBtoHSL = document.getElementById(lstTbl[iTbl]);
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[0].innerHTML=RGB[0];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[1].innerHTML=RGB[1];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[2].innerHTML=RGB[2];
+				hsl=rgb2hsl(RGB);
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[3].innerHTML=hsl[3];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[4].innerHTML=hsl[4];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[5].innerHTML=hsl[5];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[6].innerHTML=hsl[0];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[7].innerHTML=hsl[1];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[8].innerHTML=hsl[2];
+				rgb=hsl2rgb(hsl);
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[9].innerHTML=rgb[3];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[10].innerHTML=rgb[4];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[11].innerHTML=rgb[0];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[12].innerHTML=rgb[1];
+				tblRGBtoHSL.getElementsByTagName("tr")[2].getElementsByTagName("td")[13].innerHTML=rgb[2];
+			}
+			calcRamp();
+		}
+		function calcRamp(){
+			var tableData = document.getElementById("tblSunriseCalc");
+			var newcell = new Array(11)
+			var iTi;
+			var hslRampEnd = RGB2HSL(document.getElementById("rgbRampEnd").value);
+			var hslEnd = RGB2HSL(document.getElementById("rgbEnd").value);
+			var tiRampOnDurSec = document.getElementById("tiRampOnDurMin").value*60;
+			var tiStayOnDurSec = document.getElementById("tiStayOnDurMin").value*60;
+
+			for(iTi = 0; iTi < (tiRampOnDurSec); ++iTi){
+				var newRow = tableData.insertRow(iTi+2);
+				var iCol;
+				for(iCol = 0; iCol < newcell.length; iCol++){
+					newcell[iCol] = newRow.insertCell(iCol);
+				}
+				newcell[0].innerHTML = iTi;
+				var varLumTemp = Math.floor(hslRampEnd[2]*iTi/tiRampOnDurSec);
+				newcell[1].innerHTML = hslRampEnd[0]; //h
+				newcell[2].innerHTML = hslRampEnd[1]; //s
+				newcell[3].innerHTML = varLumTemp;
+				var rgb = hsl2rgb([hslRampEnd[0],hslRampEnd[1],varLumTemp]);
+				newcell[5].innerHTML = rgb[3];//q
+				newcell[6].innerHTML = rgb[4];//p
+				newcell[7].innerHTML = rgb[0];//r
+				newcell[8].innerHTML = rgb[1];//g
+				newcell[9].innerHTML = rgb[2];//b
+				newcell[10].style.backgroundColor = "#" + rgb[0].toString(16).padStart(2, "0")+ rgb[1].toString(16).padStart(2, "0") + rgb[2].toString(16).padStart(2, "0");
+			}
+			
+			for(iTi = tiRampOnDurSec; iTi <= (tiRampOnDurSec+tiStayOnDurSec); ++iTi){
+				var newRow = tableData.insertRow(iTi+2);
+				var iCol;
+				for(iCol = 0; iCol < newcell.length; iCol++){
+					newcell[iCol] = newRow.insertCell(iCol);
+				}
+				newcell[0].innerHTML = iTi;
+				var ratTiInterp = (iTi-tiRampOnDurSec)/tiStayOnDurSec
+				var varHueTemp = Math.floor(eval(hslRampEnd[0])+(hslEnd[0]-hslRampEnd[0])*ratTiInterp);
+				var varSatTemp = Math.floor(hslRampEnd[1]+(hslEnd[1]-hslRampEnd[1])*ratTiInterp);
+				var varLumTemp = Math.floor(hslRampEnd[2]+(hslEnd[2]-hslRampEnd[2])*ratTiInterp);
+				newcell[1].innerHTML = varHueTemp;
+				newcell[2].innerHTML = varSatTemp;
+				newcell[3].innerHTML = varLumTemp;
+				var rgb = hsl2rgb([varHueTemp,varSatTemp,varLumTemp]);
+				newcell[5].innerHTML = rgb[3];
+				newcell[6].innerHTML = rgb[4];
+				newcell[7].innerHTML = rgb[0];
+				newcell[8].innerHTML = rgb[1];
+				newcell[9].innerHTML = rgb[2];
+				newcell[10].style.backgroundColor = "#" + rgb[0].toString(16).padStart(2, "0") + rgb[1].toString(16).padStart(2, "0") + rgb[2].toString(16).padStart(2, "0");
+			}
+			plot();
+		}
+
+		function plot(){
+			var tableData = document.getElementById("tblSunriseCalc");
+			Canvas = document.getElementById('canvasRGB');
+			var ctx = Canvas.getContext('2d')
+			var cW = Canvas.offsetWidth
+			var cH = Canvas.offsetHeight
+			ctx.setTransform(1, 0, 0, 1, 0, 0)
+			ctx.fillStyle="rgb(255,243,240)"
+			ctx.fillRect(0,0,cW,cH)
+			ctx.strokeStyle='black'
+			ctx.lineWidth= 0.002*(cW+cH)
+			ctx.beginPath()
+			ctx.moveTo(0.1*cW, 0.05*cH)
+			ctx.lineTo(0.08*cW, 0.08*cH)
+			ctx.moveTo(0.1*cW, 0.05*cH)
+			ctx.lineTo(0.12*cW, 0.08*cH)
+			ctx.moveTo(0.1*cW, 0.05*cH)	
+			ctx.lineTo(0.1*cW, 0.9*cH)
+			ctx.lineTo(0.95*cW, 0.9*cH)
+			ctx.lineTo(0.92*cW, 0.88*cH)
+			ctx.moveTo(0.95*cW, 0.9*cH)
+			ctx.lineTo(0.92*cW, 0.92*cH)
+			ctx.stroke()
+			ctx.translate(0.1*cW, 0.9*cH)
+			ctx.scale(1,-1)
+			ctx.stroke()
+			
+			var minX = 0;
+			var maxX = tableData.rows[tableData.rows.length-1].cells[0].innerHTML;
+			var minY = 0;
+			var maxY = 260;
+			var wX=maxX-minX, wY=maxY-minY
+			var gW=0.95*cW-0.1*cW, gH=0.9*cH-0.05*cH
+			var facX=gW/wX, facY=gH/wY
+			
+			
+			ctx.save() //save canvas conf
+			ctx.scale(1,-1)
+			ctx.fillStyle='black'
+			ctx.textBaseline= 'middle'
+			ctx.textAlign= 'center'
+			var fntSize=0.02*(cW+cH)
+			ctx.font= fntSize+"pt serif"
+			ctx.fillText('(0,0)', 0, 0.05*gH)
+			var tiRampOnDurMin = eval(document.getElementById("tiRampOnDurMin").value)
+			var tiStayOnDurMin = eval(document.getElementById("tiStayOnDurMin").value)
+			ctx.fillText(tiRampOnDurMin, gW*tiRampOnDurMin/(tiRampOnDurMin+tiStayOnDurMin), 0.05*gH)// x=change
+			ctx.fillText(tiRampOnDurMin+tiStayOnDurMin, gW, 0.05*gH) //max x
+			ctx.fillText('255', -0.05*gW, -0.95*gH) //max y
+			
+			ctx.restore()
+			ctx.lineWidth= 0.002*(cW+cH)
+			var sqW=0.02*cW, sqH=0.02*cH
+			var newX, newY
+			var oldX = (tableData.rows[2].cells[0].innerHTML-minX)*facX
+			var oldYR = (tableData.rows[2].cells[7].innerHTML-minX-minY)*facY
+			var oldYG = (tableData.rows[2].cells[8].innerHTML-minX-minY)*facY
+			var oldYB = (tableData.rows[2].cells[9].innerHTML-minX-minY)*facY
+			var oldYC = 260*facY;
+			for (var i=2;i<tableData.rows.length;++i){
+				newX= (tableData.rows[i].cells[0].innerHTML-minX)*facX
+				newYR= (tableData.rows[i].cells[7].innerHTML-minX-minY)*facY
+				newYG= (tableData.rows[i].cells[8].innerHTML-minX-minY)*facY
+				newYB= (tableData.rows[i].cells[9].innerHTML-minX-minY)*facY
+				ctx.fillRect(newX-sqW/2, newY-sqH/2, sqW, sqH)
+				
+				ctx.lineWidth= 0.002*(cW+cH)
+				ctx.strokeStyle='#FF0000'
+				ctx.beginPath()
+				ctx.moveTo(oldX,oldYR)
+				ctx.lineTo(newX,newYR)
+				ctx.stroke()
+				
+				ctx.strokeStyle='#00FF00'
+				ctx.beginPath()
+				ctx.moveTo(oldX,oldYG)
+				ctx.lineTo(newX,newYG)
+				ctx.stroke()
+				
+				ctx.strokeStyle='#0000FF'
+				ctx.beginPath()
+				ctx.moveTo(oldX,oldYB)
+				ctx.lineTo(newX,newYB)
+				ctx.stroke()
+				
+				ctx.lineWidth= 0.02*(cW+cH)
+				ctx.strokeStyle="#" + 
+					eval(tableData.rows[i].cells[7].innerHTML).toString(16).padStart(2, "0") +
+					eval(tableData.rows[i].cells[8].innerHTML).toString(16).padStart(2, "0") +
+					eval(tableData.rows[i].cells[9].innerHTML).toString(16).padStart(2, "0");
+				ctx.beginPath()
+				ctx.moveTo(oldX,oldYC)
+				ctx.lineTo(newX,oldYC)
+				ctx.stroke()
+				
+				oldX = newX;
+				oldYR = newYR;
+				oldYG = newYG;
+				oldYB = newYB;
+			}
+			
+
+		}
+	</script>
+</head>
+<body style = "background-color: #0090c1" onload="calcVals()">
+	<div id="main">
+		<center>
+		<table border=1 id="sunriseConf">
+		<tr>
+			<td>Ramp On Duration</td>
+			<td><input type="number" style="width:60px" id="tiRampOnDurMin" name="tiRampOnDurMin" min="0" max="120" value="20" onchange="calcVals()" required>min</td>
+			<td rowspan=4>
+				<canvas id="canvasRGB" width="300px" height="230px"></canvas>
+			</td>
+		</tr>
+		<tr>
+			<td>Stay On Duration</td>
+			<td><input type="number" style="width:60px" id="tiStayOnDurMin" name="tiStayOnDurMin" min="0" max="120" value="10" onchange="calcVals()" required>min</td>
+		</tr>
+		<tr>
+			<td>Mid Colour</td>
+			<td><input type="color" id="rgbRampEnd" name="rgbRampEnd" value="#c45733" onchange="calcVals()"></td>
+			
+			<td>
+				<table border=1 id="tblMidColorRGBtoHSL">
+				<tr>
+					<td colspan=3>Selected</td><td rowspan=3>-></td><td colspan=6>Stored HSL</td><td rowspan=3>-></td><td colspan=5>Calcd RGB</td>
+				</tr>
+				<tr>
+					<td>R</td><td>G</td><td>B</td>
+					<td>cMin</td><td>cMax</td><td>delta</td><td>Hue</td><td>Sat</td><td>Lum</td>
+					<td>q</td><td>p</td><td>r</td><td>g</td><td>b</td>
+				</tr>
+				<tr>
+					<td></td><td></td><td></td><!--<td>-></td>-->
+					<td></td><td></td><td></td><td></td><td></td><td></td>
+					<td></td><td></td><td></td><td></td><td></td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td>End Colour</td>
+			<td><input type="color" id="rgbEnd" name="rgbEnd" value="#ff8e2b" onchange="calcVals()"></td>
+			<td>
+				<table border=1 id="tblEndColorRGBtoHSL">
+				<tr>
+					<td colspan=3>Selected</td><td rowspan=3>-></td><td colspan=6>Stored HSL</td><td rowspan=3>-></td><td colspan=5>Calcd RGB</td>
+				</tr>
+				<tr>
+					<td>R</td><td>G</td><td>B</td>
+					<td>cMin</td><td>cMax</td><td>delta</td><td>Hue</td><td>Sat</td><td>Lum</td>
+					<td>p</td><td>q</td><td>r</td><td>g</td><td>b</td>
+				</tr>
+				<tr>
+					<td></td><td></td><td></td>
+					<td></td><td></td><td></td><td></td><td></td><td></td>
+					<td></td><td></td><td></td><td></td><td></td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		<br>
+		<!--<button class="genButton" onclick="plot()">plot</button><br>-->
+		
+		<table border=1 id="tblSunriseCalc">
+			<tr>
+				<td rowspan=2>s</td>
+				<td colspan=3>HSL Stored</td><td rowspan=2>-></td><td colspan=6>RGB Req</td>
+			</tr>
+			<tr>
+				
+				<td>H</td><td>S</td><td>L</td>
+				<td>q</td><td>p</td><td>r</td><td>g</td><td>b</td><td>color</td>
+			</tr>
+		</table>
+	</div>
+	</center>
+</body>
+</html>
+

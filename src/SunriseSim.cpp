@@ -1,12 +1,12 @@
 #include <ESP8266WiFi.h>
-#include "espRFFanGlobals.h"
+#include "espGlobals.h"
 #include "SunriseSim.h"
 #include "serviceFcn.h"
 #include <math.h>
 
 SunriseSim::SunriseSim(){
-  StSunriseSimEna = besFALSE;
-  TiSunriseDaysEna = 0b1111100;
+  StSunriseSimEna = fsFALSE;
+  TiSunriseDaysEna = 0b1111100; //mo,tu,...,su
   TiSunriseHrStrt = 6; //hr
   TiSunriseMinStrt = 50; //min
   TiRampOnDurSec = 10*60; //s
@@ -117,9 +117,9 @@ uint8_t SunriseSim::setRGBW(){
 
 uint8_t SunriseSim::isActive(){
     if (TiCurr<=(TiRampOnDurSec+TiStayOnDurSec+1))
-        return besTRUE;
+        return fsTRUE;
     else
-        return besFALSE;
+        return fsFALSE;
 }
 
 void SunriseSim::Start(){

@@ -4,6 +4,7 @@
 	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
 	<link href='style.css' rel='stylesheet' type='text/css'>
 	<title>Sunrise Simulator Timer</title>
+	<script src="espWebSrv.js"></script>
 	<script>
 		function getSunriseConf(tableId){
 		if (1){
@@ -77,29 +78,12 @@
 					console.log("xmlResult.status="+xmlhttp.status);
 		}
 	}
-		
-		function openNav() {
-			document.getElementById("mySidebar").style.width = "250px";
-			document.getElementById("main").style.marginLeft = "250px";
-		}
-	/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
-		function closeNav() {
-			document.getElementById("mySidebar").style.width = "0";
-			document.getElementById("main").style.marginLeft = "0";
-		}
 	</script>
 </head>
 <body style = "background-color: #0090c1" onload="getSunriseConf('sunriseConf')">
-	<div id="mySidebar" class="sidebar">
-		<a href="javascript:void(0)" class="navCloseBtn" onclick="closeNav()">&times;</a>
-		<a href="index.html">Home</a>
-		<a href="rgb.html">RGB</a>
-		<a href="sunrise.html">Sunrise</a>
-		<a href="settings.html">Settings</a>
-		<a href="info.html">Info</a>
-	</div>
+	<iframe id="navBarMenu" src="navbar.html" class="navBar"></iframe>
 	<div id="main">
-		<button class="navOpenBtn" onclick="openNav()">&#9776;</button>
+		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
 		<center>
 		<form action="saveSunriseSim" method="post">
 		<table border=1 id="sunriseConf">

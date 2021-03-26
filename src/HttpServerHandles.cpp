@@ -1,21 +1,21 @@
 #include "includes.h"
-#include "espRFFanGlobals.h"
+#include "espGlobals.h"
 #include "HttpServerHandles.h"
 
 void httpServerHandleFanCmdReq(){
   if (httpServer.hasArg("HarborBreezeReq")==true){
     if (httpServer.arg("HarborBreezeReq")=="Light")
-      fanHarborBreeze.sendCmd(FanLight);
+      rfFan[0].sendCmd(FanLight);
     else if (httpServer.arg("HarborBreezeReq")=="FanOff")
-      fanHarborBreeze.sendCmd(FanOff);
+      rfFan[0].sendCmd(FanOff);
     else if (httpServer.arg("HarborBreezeReq")=="FanReverse")
-      fanHarborBreeze.sendCmd(FanReverse);
+      rfFan[0].sendCmd(FanReverse);
     else if (httpServer.arg("HarborBreezeReq")=="FanLow")
-      fanHarborBreeze.sendCmd(FanLow);
+      rfFan[0].sendCmd(FanLow);
     else if (httpServer.arg("HarborBreezeReq")=="FanMedium")
-      fanHarborBreeze.sendCmd(FanMedium);
+      rfFan[0].sendCmd(FanMedium);
     else if (httpServer.arg("HarborBreezeReq")=="FanHigh")
-      fanHarborBreeze.sendCmd(FanHigh);
+      rfFan[0].sendCmd(FanHigh);
     else
       stdOut("unknown command:" + httpServer.arg("HarborBreezeReq"));
 
@@ -23,17 +23,17 @@ void httpServerHandleFanCmdReq(){
     httpServer.send(303);
   }else if (httpServer.hasArg("CasablancaReq")==true){
     if (httpServer.arg("CasablancaReq")=="Light")
-      fanCasablanca.sendCmd(FanLight);
+      rfFan[1].sendCmd(FanLight);
     else if (httpServer.arg("CasablancaReq")=="FanOff")
-      fanCasablanca.sendCmd(FanOff);
+      rfFan[1].sendCmd(FanOff);
     else if (httpServer.arg("CasablancaReq")=="FanReverse")
-      fanCasablanca.sendCmd(FanReverse);
+      rfFan[1].sendCmd(FanReverse);
     else if (httpServer.arg("CasablancaReq")=="FanLow")
-      fanCasablanca.sendCmd(FanLow);
+      rfFan[1].sendCmd(FanLow);
     else if (httpServer.arg("CasablancaReq")=="FanMedium")
-      fanCasablanca.sendCmd(FanMedium);
+      rfFan[1].sendCmd(FanMedium);
     else if (httpServer.arg("CasablancaReq")=="FanHigh")
-      fanCasablanca.sendCmd(FanHigh);
+      rfFan[1].sendCmd(FanHigh);
     else
       stdOut("unknown command:" + httpServer.arg("CasablancaReq"));
 
@@ -50,9 +50,9 @@ void httpServerHandleFanCmdReq(){
 void httpServerHandleRgbwCmdReq(){
   if (httpServer.hasArg("stRGBWActReq")==true){
     if (httpServer.arg("stRGBWActReq")=="0xAA"){
-      stRGBWAct = besON;
+      stRGBWAct = fsON;
     }else{
-      stRGBWAct = besOFF;
+      stRGBWAct = fsOFF;
       analogWrite(pinRED,0); //10bit pwm
       analogWrite(pinGREEN,0); //10bit pwm
       analogWrite(pinBLUE,0); //10bit pwm
@@ -60,7 +60,7 @@ void httpServerHandleRgbwCmdReq(){
     }
     httpServer.send(200, "text/html", String(stRGBWAct));
   }else{
-    stRGBWAct = besOFF;
+    stRGBWAct = fsOFF;
     httpServer.sendHeader("Location","/");
     httpServer.send(404);
     //TODO: register incorrect request time, source ip
@@ -71,7 +71,7 @@ void httpServerHandleRgbwCmdReq(){
 void httpServerHandleGetData(){
   if(httpServer.hasArg("fileList")==true){
     String jsonFileList = "{\"espData\":[{\"Field\":\"File Name\",\"Data\":\"Size\"},";
-    Dir directoryEntry = SPIFFS.openDir("/");
+    Dir directoryEntry = LittleFS.openDir("/");
     while (directoryEntry.next()) {
       File fileElement = directoryEntry.openFile("r");
       jsonFileList += "{\"Field\":\"" + String(fileElement.name()).substring(1) + "\",\"Data\":\"" + String(fileElement.size()) + "\"},";
@@ -81,7 +81,7 @@ void httpServerHandleGetData(){
     jsonFileList += "]}";
     httpServer.send(200, "text/html", jsonFileList);
   }else if(httpServer.hasArg("stRGBWAct")==true){
-    if (stRGBWAct==besON)
+    if (stRGBWAct==fsON)
       httpServer.send(200, "text/html", "0xAA");
     else
       httpServer.send(200, "text/html", "0x55");
@@ -91,8 +91,25 @@ void httpServerHandleGetData(){
       httpServer.send(200, "text/html", "P="+String(bme280.readPressure()/1000));
   }else if(httpServer.hasArg("stHum")==true){
       httpServer.send(200, "text/html", "H="+String(bme280.readHumidity()));
+  }else if(httpServer.hasArg("rfConf")==true){
+    String jsonDeviceData="{\"espData\":["
+    "{\"Field\":\"rfFan[0].fanName\",\"Data\":\"" + String(rfFan[0].getName()) + "\"},"
+    "{\"Field\":\"rfFan[0].getFanSwt\",\"Data\":\"" + String(rfFan[0].getFanSwt()) + "\"},"
+    "{\"Field\":\"rfFan[0].TiLoLongPulse\",\"Data\":\"" + String(rfFan[0].getTiLoLongPulse()) + "\"},"
+    "{\"Field\":\"rfFan[0].TiLoShortPulse\",\"Data\":\"" + String(rfFan[0].getTiLoShortPulse()) + "\"},"
+    "{\"Field\":\"rfFan[0].TiLoLongPulse\",\"Data\":\"" + String(rfFan[0].getTiHiShortPulse()) + "\"},"
+    "{\"Field\":\"rfFan[0].TiHiLongPulse\",\"Data\":\"" + String(rfFan[0].getTiHiLongPulse()) + "\"},"
+    "{\"Field\":\"rfFan[0].NrRepeat\",\"Data\":\"" + String(rfFan[0].getNrRepeat()) + "\"},"
+    "{\"Field\":\"rfFan[1].fanName\",\"Data\":\"" + String(rfFan[1].getName()) + "\"},"
+    "{\"Field\":\"rfFan[1].getFanSwt\",\"Data\":\"" + String(rfFan[1].getFanSwt()) + "\"},"
+    "{\"Field\":\"rfFan[1].TiLoLongPulse\",\"Data\":\"" + String(rfFan[1].getTiLoLongPulse()) + "\"},"
+    "{\"Field\":\"rfFan[1].TiLoShortPulse\",\"Data\":\"" + String(rfFan[1].getTiLoShortPulse()) + "\"},"
+    "{\"Field\":\"rfFan[1].TiLoLongPulse\",\"Data\":\"" + String(rfFan[1].getTiHiShortPulse()) + "\"},"
+    "{\"Field\":\"rfFan[1].TiHiLongPulse\",\"Data\":\"" + String(rfFan[1].getTiHiLongPulse()) + "\"},"
+    "{\"Field\":\"rfFan[1].NrRepeat\",\"Data\":\"" + String(rfFan[1].getNrRepeat()) + "\"},"
+    "]}";
+    httpServer.send(200, "text/html", jsonDeviceData);
   }else if(httpServer.hasArg("sunriseConf")==true){
-    String tmp = "0";
     String jsonDeviceData="{\"espData\":[{\"Field\":\"stSunriseSimAct\",\"Data\":\"" + String(sunriseSim.getStSunriseSimEna()) + "\"},"
     "{\"Field\":\"stSunriseSimDaysAct\",\"Data\":\"" + String(sunriseSim.getTiSunriseDaysEna()) + "\"},"
     "{\"Field\":\"tiSunriseSimSHrStart\",\"Data\":\"0" + String(sunriseSim.getTiSunriseHrStrt()) + "\"},"
@@ -106,7 +123,7 @@ void httpServerHandleGetData(){
     String jsonDeviceData="{\"espData\":[{\"Field\":\"Host Name\",\"Data\":\"" + espHost + "\"},"
     "{\"Field\":\"Device IP\",\"Data\":\"" + WiFi.localIP().toString() + "\"},"
     "{\"Field\":\"Device MAC Address\",\"Data\":\"" + WiFi.macAddress() + "\"},"
-    "{\"Field\":\"Boot Time\",\"Data\":\"" + timeToStr(bootTime) + "\"},"
+    "{\"Field\":\"Boot Time\",\"Data\":\"" + getTiStr(tiEspStrt) + "\"},"
     "{\"Field\":\"WiFi RSSI\",\"Data\":\"" + String(WiFi.RSSI()) + "\"},"
     "{\"Field\":\"Free Heap\",\"Data\":\"" + String(ESP.getFreeHeap()) + "\"},"
     "{\"Field\":\"Core Version\",\"Data\":\"" + ESP.getCoreVersion() + "\"},"
@@ -148,7 +165,7 @@ void httpServerHandleFileUploadStream(){
   // curl -X POST -F "file=@SomeFile.EXT" espHost.local/fileuploadstream
   //logTelnetBuff.write("fileupload stream requested\r\n");
   HTTPUpload& upload = httpServer.upload();
-  //File fsUploadFile;
+  static File fsUploadFile;
 
   stdOut("handleFileUpload Entry: " + String(upload.status));
   //logTelnetBuff.write("handleFileUpload Entry: " + String(upload.status) + "\r\n");
@@ -157,7 +174,7 @@ void httpServerHandleFileUploadStream(){
     if (!filename.startsWith("/"))
       filename = "/" + filename;
     //stdOut("FileUpload Name: " + filename);
-    fsUploadFile = SPIFFS.open(filename, "w");
+    fsUploadFile = LittleFS.open(filename, "w");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     if(fsUploadFile)
       fsUploadFile.write(upload.buf, upload.currentSize);
@@ -182,13 +199,13 @@ void httpServerHandleSaveSSID(){
   httpServer.arg("saveSSID")=="Save" &&
   httpServer.arg("confSSID")!="" &&
   httpServer.arg("confPW")!=""){
-    SPIFFS.remove("/config.dat");
-    File configFile = SPIFFS.open("/config.dat", "w");
+    LittleFS.remove("/config.dat");
+    File configFile = LittleFS.open("/config.dat", "w");
     String tmpMACAddr = httpServer.arg("confMACAddr");
     if (tmpMACAddr.length()==17)
       configFile.print(tmpMACAddr);
     else
-      WiFi.macAddress();
+      configFile.print(WiFi.macAddress());
     configFile.write(3);
     configFile.print(httpServer.arg("confSSID"));
     configFile.write(3);
@@ -208,15 +225,44 @@ void httpServerHandleSaveSSID(){
   httpServer.send(303);
 }
 
+void httpServerHandleSaveRF(){
+  if (httpServer.hasArg("rfFan[0].fanName")==true &&
+  httpServer.hasArg("rfFan[0].fanSequence")==true &&
+  httpServer.arg("saveRF")=="Save" &&
+  httpServer.arg("rfFan[0].fanName")!="" &&
+  httpServer.arg("rfFan[0].fanSequence")!=""){
+    LittleFS.remove("/configRF.dat");
+    File configFile = LittleFS.open("/configRF.dat", "w");
+    configFile.print(httpServer.arg("rfFan[0].fanName"));
+    configFile.write(3);
+    configFile.print(httpServer.arg("rfFan[0].fanSequence"));
+    configFile.print(httpServer.arg("rfFan[0].TiLoLongPulse"));
+    configFile.print(httpServer.arg("rfFan[0].TiLoShortPulse"));
+    configFile.print(httpServer.arg("rfFan[0].TiHiLongPulse"));
+    configFile.print(httpServer.arg("rfFan[0].NrRepeat"));
+    
+    configFile.print(httpServer.arg("rfFan[1].fanName"));
+    configFile.write(3);
+    configFile.print(httpServer.arg("rfFan[1].fanSequence"));
+    configFile.print(httpServer.arg("rfFan[1].TiLoLongPulse"));
+    configFile.print(httpServer.arg("rfFan[1].TiLoShortPulse"));
+    configFile.print(httpServer.arg("rfFan[1].TiHiLongPulse"));
+    configFile.print(httpServer.arg("rfFan[1].NrRepeat"));
+    configFile.close();
+  }
+  httpServer.sendHeader("Location","/");
+  httpServer.send(303);
+}
+
 void httpServerHandleSaveSunrise(){
   if (httpServer.hasArg("saveSunriseSim")==true && httpServer.arg("saveSunriseSim")=="Save"){
-    SPIFFS.remove("/configSunriseSim.dat");
-    File configFile = SPIFFS.open("/configSunriseSim.dat", "w");
-    uint8_t stSunriseSimAct = besFALSE;
+    LittleFS.remove("/configSunriseSim.dat");
+    File configFile = LittleFS.open("/configSunriseSim.dat", "w");
+    uint8_t stSunriseSimAct = fsFALSE;
     if (httpServer.arg("stSunriseSimAct")=="on")
-      stSunriseSimAct = besTRUE;
+      stSunriseSimAct = fsTRUE;
     else
-      stSunriseSimAct = besFALSE;
+      stSunriseSimAct = fsFALSE;
     configFile.write(stSunriseSimAct);
     
     uint8_t tiSunriseDaysAct=0;
@@ -312,7 +358,7 @@ bool loadFromSpiffs(String path) {
   else if (path.endsWith(".pdf")) dataType = "application/pdf";
   else if (path.endsWith(".zip")) dataType = "application/zip";
 
-  File dataFile = SPIFFS.open(path.c_str(), "r");
+  File dataFile = LittleFS.open(path.c_str(), "r");
 
   if (!dataFile) {
     stdOut("Failed to open file:" + path);
@@ -333,7 +379,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
   switch (type) {
     case WStype_DISCONNECTED: {
       stdOut(num + "Disconnected!");
-      if (stRGBWAct==besOFF){
+      if (stRGBWAct==fsOFF){
         analogWrite(pinRED,0); //10bit pwm
         analogWrite(pinGREEN,0); //10bit pwm
         analogWrite(pinBLUE,0); //10bit pwm
@@ -355,7 +401,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       Serial.printf("[%u] get Text: %s\n", num, payload);
       String colourData = (const char *)payload;
       //stdOut(num + " TEXT:" + String((char *)payload));
-      if (stRGBWAct==besON && colourData.substring(0,1)=="#"){
+      if (stRGBWAct==fsON && colourData.substring(0,1)=="#"){
         uint8_t arrRGBweb[3];
         for (int i=0;i<3;++i)
         {

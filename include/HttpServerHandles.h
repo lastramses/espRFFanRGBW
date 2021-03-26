@@ -4,6 +4,7 @@
 
 void httpServerHandleFanCmdReq();
 void httpServerHandleRgbwCmdReq();
+void httpServerHandleSaveRF();
 void httpServerHandleSaveSunrise();
 void httpServerHandleGetData();
 void httpServerHandleFileUpload();

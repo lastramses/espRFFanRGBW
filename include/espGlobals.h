@@ -13,10 +13,10 @@
 
 #define pinOnBoardLED 2 // D4, dig out onboard blue led
 
-#define besTRUE 0xAA
-#define besFALSE 0x55
-#define besON 0xAA
-#define besOFF 0x55
+#define fsTRUE 0xAA
+#define fsFALSE 0x55
+#define fsON 0xAA
+#define fsOFF 0x55
 #define FanLight 0x0
 #define FanOff 0x1
 #define FanReverse 0x2
@@ -29,16 +29,18 @@
 #include <includes.h>
 
 extern Adafruit_BME280 bme280;
-extern RFFan fanHarborBreeze;
-extern RFFan fanCasablanca;
+//extern RFFan fanHarborBreeze;
+//extern RFFan fanCasablanca;
+extern RFFan rfFan[2];
 extern ESP8266WebServer httpServer;
 extern WebSocketsServer webScktSrv;
 extern LogCircBuffer<2048> logTelnetBuff;
-extern File fsUploadFile;
+//extern File fsUploadFile;
 extern String espHost;
+extern RFFan rfFan[2];
 extern SunriseSim sunriseSim;
 extern uint8_t stRGBWAct;
-extern time_t bootTime;
+extern time_t tiEspStrt;
 
 // identifier-is-undefined-setenv-tzset 
 _VOID      _EXFUN(tzset,	(_VOID));

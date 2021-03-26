@@ -1,6 +1,6 @@
 
 #include <ESP8266WiFi.h>
-#include "espRFFanGlobals.h"
+#include "espGlobals.h"
 #include "serviceFcn.h"
 
 int strToInt(String inStr){
