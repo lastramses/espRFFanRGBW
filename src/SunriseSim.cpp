@@ -223,7 +223,7 @@ float SunriseSim::hue2rgb(float p, float q, float t){
 	if(t < 0.5) // t<1/2
     return q;
 	if(t < 0.66667) // t<2/3
-    return p + (q - p) * (0.33333 - t) * 6;
+    return p + (q - p) * (0.66667 - t) * 6;
 	return p;
 }
 
@@ -254,7 +254,7 @@ uint32_t SunriseSim::rgb2hsl(uint32_t rgbColor){
   else if (cMax==colorRed)
     colorHue=fmod(((colorGreen-colorBlue)/delta),6)*255/6; //60*x*255/360
   else if (cMax==colorGreen)
-    colorHue=(((colorBlue-colorRed)/delta)+2)*266/6;
+    colorHue=(((colorBlue-colorRed)/delta)+2)*255/6;
   else if (cMax==colorBlue)
     colorHue=(((colorRed-colorGreen)/delta)+4)*255/6;
   
@@ -265,7 +265,7 @@ uint32_t SunriseSim::rgb2hsl(uint32_t rgbColor){
   if (delta==0)
     tmpSaturation=0;
   else
-    tmpSaturation=delta/(1-fabs(2*tmpLightness-1));
+    tmpSaturation=delta/max(1-fabs(2*tmpLightness-1),(double)1);
   
   colorSaturation = tmpSaturation*255;
   //stdOut("rgb2hsl");
