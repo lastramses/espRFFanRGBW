@@ -2,14 +2,13 @@
 #define HTTPSERVERHANDLES_H
 // function prototypes for HTTP handlers
 
-void httpServerHandleFanCmdReq();
-void httpServerHandleRgbwCmdReq();
-void httpServerHandleSaveRF();
-void httpServerHandleSaveSunrise();
+void httpServerHandleRoot();
 void httpServerHandleGetData();
+void httpServerHandleSetData();
+
 void httpServerHandleFileUpload();
 void httpServerHandleFileUploadStream();
-void httpServerHandleSaveSSID();
+
 void httpServerHandleDeviceReset();
 void httpServerHandleNotFound();
 bool loadFromSpiffs(String path);

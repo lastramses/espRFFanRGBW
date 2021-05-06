@@ -6,11 +6,11 @@
 	<title>esp RF FAN Control</title>
 	<script src="espWebSrv.js"></script>
 	<script>
-	function btnClick(typeFan,cmdFan){
+	function btnClick(fanReq,fanCmd){
 		xmlhttp =new XMLHttpRequest();
-		xmlhttp.open("POST","/FanCmdReq",true);
+		xmlhttp.open("POST","/setData",true);
 		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-		xmlhttp.send(typeFan+"="+cmdFan);
+		xmlhttp.send("fanReq="+fanReq+"&fanCmd="+fanCmd);
 		xmlhttp.onreadystatechange = function(){
 			if(xmlhttp.readyState == 4 && xmlhttp.status==300){
 				var xmlResult = xmlhttp.responseText;
@@ -19,68 +19,50 @@
 				console.log("xmlResult.status="+xmlhttp.status);
 		}
 	}
-	function getTemp(){
-		xmlhttp =new XMLHttpRequest();
-		xmlhttp.open("POST","/getData",true);
-		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-		console.log("post req sent to temp read");
-		xmlhttp.onreadystatechange = function(){
-			if(xmlhttp.readyState == 4 && xmlhttp.status==200){
-				var xmlResult = xmlhttp.responseText;
-				var lblT = document.getElementById("lblTemp");
-				lblT.innerText = "T: " + xmlResult.substr(2) + "C";
-				console.log("xmlResult=" + xmlResult);
-				console.log("xmlResult returned positive");
-				getPres();
-			}else
-				console.log("xmlhttp not returned, xmlhttp.status: " + xmlhttp.status);
+	function getPageData(){
+		var pageData = [["stTemp", "lblTemp"], ["stPres", "lblP"], ["rfFanName", "lblFan0"],["rfFanName", "lblFan1"]];
+		xmlhttp=new Array(pageData.length);
+		for (let i = 0; i < pageData.length; i++) {
+			xmlhttp[i] = new XMLHttpRequest();
+			xmlhttp[i].open("POST", "/getData",true);
+			xmlhttp[i].setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			console.log("post req sent ");
+			xmlhttp[i].onload = function() {
+				var data = JSON.parse(xmlhttp[i].responseText);
+				var lblData = document.getElementById(pageData[i][1]);
+				lblData.innerText = data[0].Data;
+				console.log(data[0].Data);
+			}
+			xmlhttp[i].send(pageData[i][0]+"="+pageData[i][1].slice(-1));
 		}
-		xmlhttp.send("stTemp");
-	}
-	function getPres(){
-		xmlhttp =new XMLHttpRequest();
-		xmlhttp.open("POST","/getData",true);
-		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-		console.log("post req sent to pressure read");
-		xmlhttp.onreadystatechange = function(){
-			if(xmlhttp.readyState == 4 && xmlhttp.status==200){
-				var xmlResult = xmlhttp.responseText;
-				var lblT = document.getElementById("lblP");
-				lblT.innerText = "P: " + xmlResult.substr(2) + "kPa";
-				console.log("xmlResult=" + xmlResult);
-				console.log("xmlResult returned positive");
-			}else
-				console.log("xmlhttp not returned, xmlhttp.status: " + xmlhttp.status);
-		}
-		xmlhttp.send("stPres");
 	}
 	</script>
 </head>
 
-<body style = "background-color: #0090c1" onload="getTemp()">
+<body style = "background-color: #0072be" onload="getPageData()">
 	<iframe id="navBarMenu" src="navbar.html" class="navBar"></iframe>
 	<div id="main">
 		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
 		<p align="right">
-		<label id="lblTemp">T: C</label><br>
-		<label id="lblP">P: kPa</label>
+		T:<label id="lblTemp"></label>&deg;C<br>
+		P:<label id="lblP"></label>kPa
 		</p>
 		<br><center>
 		<table cellpadding="5" border="1"><tbody>
-		<tr><td>Harbor Breeze<br>Living Room</td>
-		<td align="center"><button class="genButton" onclick="btnClick('HarborBreezeReq','Light')">&#9788;</button><br><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanReverse')">&#8634;</button><br><br>
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanOff')">&#10799;</button>&nbsp;
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanLow')">&#9866;</button>&nbsp;
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanMedium')">&#9868;</button>&nbsp;
-		<button class="genButton" onclick="btnClick('HarborBreezeReq','FanHigh')">&#9776;</button>
-		<tr><td>Casablanca<br>Bedroom</td>
-		<td align="center"><button class="genButton" onclick="btnClick('CasablancaReq','Light')">&#9788;</button><br><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanReverse')">&#8634;</button><br><br>
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanOff')">&#10799;</button>&nbsp;
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanLow')">&#9866;</button>&nbsp;
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanMedium')">&#9868;</button>&nbsp;
-		<button class="genButton" onclick="btnClick('CasablancaReq','FanHigh')">&#9776;</button>
+		<tr><td><label id="lblFan0">Fan[0]</label></td>
+		<td align="center"><button class="genButton" onclick="btnClick('0','Light')">&#9788;</button><br><br>
+		<button class="genButton" onclick="btnClick('0','FanReverse')">&#8634;</button><br><br>
+		<button class="genButton" onclick="btnClick('0','FanOff')">&#10799;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('0','FanLow')">&#9866;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('0','FanMedium')">&#9868;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('0','FanHigh')">&#9776;</button>
+		<tr><td><label id="lblFan1">Fan[1]</label></td>
+		<td align="center"><button class="genButton" onclick="btnClick('1','Light')">&#9788;</button><br><br>
+		<button class="genButton" onclick="btnClick('1','FanReverse')">&#8634;</button><br><br>
+		<button class="genButton" onclick="btnClick('1','FanOff')">&#10799;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('1','FanLow')">&#9866;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('1','FanMedium')">&#9868;</button>&nbsp;
+		<button class="genButton" onclick="btnClick('1','FanHigh')">&#9776;</button>
 		</tbody></table>
 		</center>
 	</div>

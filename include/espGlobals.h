@@ -29,21 +29,22 @@
 #include <includes.h>
 
 extern Adafruit_BME280 bme280;
-//extern RFFan fanHarborBreeze;
-//extern RFFan fanCasablanca;
 extern RFFan rfFan[2];
+extern String confTiZne;
 extern ESP8266WebServer httpServer;
 extern WebSocketsServer webScktSrv;
+extern EspSaveCrash saveCrash;
 extern LogCircBuffer<2048> logTelnetBuff;
-//extern File fsUploadFile;
 extern String espHost;
 extern RFFan rfFan[2];
 extern SunriseSim sunriseSim;
+extern IFTTTCom iftttCom[2];
 extern uint8_t stRGBWAct;
 extern time_t tiEspStrt;
+extern uint8_t stReloadFS;
 
-// identifier-is-undefined-setenv-tzset 
-_VOID      _EXFUN(tzset,	(_VOID));
+// identifier-undefined: tzset setenv
+_VOID _EXFUN(tzset,(_VOID));
 int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
 
 #endif

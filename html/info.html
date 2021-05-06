@@ -6,7 +6,7 @@
 	<title>ESP Info</title>
 	<script src="espWebSrv.js"></script>
 </head>
-<body style = "background-color: #0090c1" onload="getDeviceInfo('deviceData')">
+<body style = "background-color: #0072be" onload="getDeviceInfo('deviceData')">
 	<iframe id="navBarMenu" src="navbar.html" class="navBar"></iframe>
 	<div id="main">
 		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
@@ -19,7 +19,9 @@
 		</table>
 		</center>
 		<form action="getData" method="post">
-			<button id="stdOutBtn" class="genBtn" name="stdOut" value="true">Log</button>
+			<button id="stdOutBtn" class="genBtn" name="stdOut" value="true">Display stdOut</button><br>
+			<button id="stdOutBtn" class="genBtn" name="crashDump" value="true">Display Crash Dump</button><br>
+			<button id="stdOutBtn" class="genBtn" name="crashClear" value="true">Clear Crash History</button>
 		</form>
 	</div>
 </body>

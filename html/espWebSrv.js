@@ -28,14 +28,14 @@ function getDeviceInfo(tableId){
 function populateDataTable(tableId,inArray){
 	var tableData = document.getElementById(tableId);
 	var i;
-	for(i = 0; i < inArray.espData.length; i++){
+	for(i = 0; i < inArray.length; i++){
 		var newRow = tableData.insertRow(i);
 		var newcell1 = newRow.insertCell(0);
 		var newcell2 = newRow.insertCell(1);
-		newcell1.innerHTML = inArray.espData[i].Field;
-		if (tableId=='deviceSSID') //create input box for results
-			newcell2.innerHTML = "<input type=\"text\" class=inputBox name="+inArray.espData[i].Field+" value="+inArray.espData[i].Data+">";
+		newcell1.innerHTML = inArray[i].Field;
+		if (tableId.includes('conf')) //create input box for tables that have Conf in name
+			newcell2.innerHTML = "<input type=\"text\" class=inputBox name=\""+inArray[i].Field+"\" value=\""+inArray[i].Data+"\">";
 		else //otherwise plain text
-			newcell2.innerHTML = inArray.espData[i].Data;
+			newcell2.innerHTML = inArray[i].Data;
 	}
 }

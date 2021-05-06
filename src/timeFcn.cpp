@@ -45,15 +45,16 @@ String getTiStr(long tiRaw){
 
 void printTiLocNow(){
   stdOut(getTiStr(getTiNowRaw()));
-
+  /*
   time_t rawtime;
   struct tm * timeinfo;
   time (&rawtime);
   timeinfo = localtime (&rawtime);
   stdOut("tm_wday=" +String(timeinfo->tm_wday));
-  stdOut("tm_hout=" +String(timeinfo->tm_hour));
+  stdOut("tm_hour=" +String(timeinfo->tm_hour));
   stdOut("tm_min=" +String(timeinfo->tm_min));
   stdOut("tm_isdst=" +String(timeinfo->tm_isdst));
+  */
 }
 
 uint8_t isLocTi(uint8_t day, uint8_t hour, uint8_t minute){
@@ -73,37 +74,3 @@ uint8_t isLocTi(uint8_t day, uint8_t hour, uint8_t minute){
   else
     return fsFALSE;
 }
-/*
-uint8_t isTiDSTAct(){
-  struct tm* tiNow = convRawTiToLoc(getTiNowRaw());
-  int x = tiNow->tm_year - 2000;
-  x = (x + x/4 + 2) % 7; // remainder identify which day of mo is Su
-  uint8_t dst = 0;
-  if ((tiNow->tm_mon < 3) || (tiNow->tm_mon > 11)){ //bef mar or aft nov no DST
-    dst = 0;
-  }else if((tiNow->tm_mon > 3) && (tiNow->tm_mon < 11)){ //aft mar and bef nov is DST
-    dst = 1;
-  }else if(tiNow->tm_mon == 3){
-    if (tiNow->tm_mday > (14-x)){ //past dst set day
-      dst = 1;
-    }else if((tiNow->tm_mday == (14-x)) && tiNow->tm_hour >= 2){ //dst set day
-      dst = 1;
-    }else{
-      dst = 0; //before dst day
-    }
-  }else if(tiNow->tm_mon == 11){
-    if (tiNow->tm_mday > (7-x)){ //past dst set day
-      dst = 0;
-    }else if((tiNow->tm_mday == (7-x)) && tiNow->tm_hour >= 2){ //dst remove day
-      dst = 0;
-    }else{
-      dst = 1; //before dst day
-    }
-  }
-  if (tiNow->tm_isdst != dst){
-    stdOut("dst mismatch recnfiguring with dst="+String(dst));
-    configTime(-5*3600, dst*3600, "pool.ntp.org", "time.nist.gov");
-    printTiLocNow();
-  }
-  return dst;
-}*/

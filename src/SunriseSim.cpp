@@ -79,6 +79,7 @@ uint32_t SunriseSim::getHSLEnd(){
   return HSLEnd;
 }
 
+
 float SunriseSim::getHue(uint8_t NrHueSel){
   if (NrHueSel==0)
     return ((float)((HSLRampEnd&0xFF0000)>>16))/255;
@@ -116,7 +117,7 @@ uint8_t SunriseSim::setRGBW(){
 }
 
 uint8_t SunriseSim::isActive(){
-    if (TiCurr<=(TiRampOnDurSec+TiStayOnDurSec+1))
+    if ((StSunriseSimEna==fsTRUE) && (TiCurr<=(TiRampOnDurSec+TiStayOnDurSec+1)))
         return fsTRUE;
     else
         return fsFALSE;

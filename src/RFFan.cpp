@@ -120,7 +120,7 @@ void RFFan::sendCmd(uint8 cmd){
     // if insufficient try using ESP.getCycleCount() for more accurate timing
   }
   digitalWrite(pinRFSend, LOW);
-  stdOut("RF sent " + cmd);
+  stdOut("RF sent " + String(cmd));
 }
 
 void RFFan::sendRFFanBit(bool stBit){

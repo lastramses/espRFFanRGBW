@@ -17,9 +17,9 @@
 				if(xmlhttp.readyState == 4 && xmlhttp.status==200){
 					var xmlResult = xmlhttp.responseText;
 					if(xmlResult == "0xAA")
-						btnRGBW.checked = false
-					else if (xmlResult == "0x55")
 						btnRGBW.checked = true
+					else if (xmlResult == "0x55")
+						btnRGBW.checked = false
 					else
 						console.log("xmlResult=" + xmlResult);
 					console.log("xmlResult returned positive");
@@ -31,22 +31,23 @@
 		function rgbwCmdReq(){
 			var btnRGBW = document.getElementById("stRgbwButton");
 			xmlhttp =new XMLHttpRequest();
-			xmlhttp.open("POST","/rgbwCmdReq",true);
+			xmlhttp.open("POST","/setData",true);
 			xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-			if (btnRGBW.checked == false)
-				xmlhttp.send("stRGBWActReq=0x55"); 
+			console.log("checkst=" + btnRGBW.checked)
+			if (btnRGBW.checked == true)
+				xmlhttp.send("stRGBWActReq=0xAA"); 
 			else
-				xmlhttp.send("stRGBWActReq=0xAA");
+				xmlhttp.send("stRGBWActReq=0x55");
 		
 			xmlhttp.onreadystatechange = function(){
 				if(xmlhttp.readyState == 4 && xmlhttp.status==200){
 					var xmlResult = xmlhttp.responseText;
 					if (xmlResult=="170")
 						//btnRGBW.innerText = "OFF"
-						btnRGBW.checked = false
+						btnRGBW.checked = true
 					else
 						//btnRGBW.innerText = "ON"
-						btnRGBW.checked = true
+						btnRGBW.checked = false
 					console.log("xmlhttp=" + xmlResult);
 				}else
 					console.log("xmlResult.status="+xmlhttp.status);
@@ -95,8 +96,8 @@
 	<iframe id="navBarMenu" src="navbar.html" class="navBar"></iframe>
 	<div id="main">
 		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
-		<label class="switch" onclick="rgbwCmdReq()">
-			<input type="checkbox" id="stRgbwButton" name="stSunriseSimAct" >
+		<label class="switch">
+			<input type="checkbox" id="stRgbwButton" name="stSunriseSimAct" onclick="rgbwCmdReq()">
 			<span class="slider round"></span>
 		</label>
 		<center>

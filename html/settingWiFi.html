@@ -6,20 +6,20 @@
 	<title>ESP Config</title>
 	<script src="espWebSrv.js"></script>
 </head>
-<body style = "background-color: #0090c1" onload="getDeviceInfo('deviceSSID')">
+<body style = "background-color: #0072be" onload="getDeviceInfo('confWiFi')">
 	<iframe id="navBarMenu" src="navbar.html" class="navBar"></iframe>
 	<div id="main">
 		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
 		<br><center>
-		<form action="saveSSID" method="post">
-		<table  id="deviceSSID" border=1 cellpadding=5>
-		<button id="saveBtn" name="saveSSID" value="Save">Save</button>
+		<form action="setData" method="post">
+		<table  id="confWiFi" border=1 cellpadding=5>
+		<button id="saveBtn" name="saveWiFiConf" value="Save">Save</button>
 		&nbsp;
-		<button id="cancelBtn" name="cancelSSID" value="Cancel">Cancel</button>
+		<button id="cancelBtn" name="cancelWiFiConf" value="Cancel">Cancel</button>
 		</table>
 		</form>
 		</center>
-		<a href="\DeviceReset">ESP SW Reset</a>
+		<a href="\deviceReset">ESP SW Reset</a>
 	</div>
 	
 </body>

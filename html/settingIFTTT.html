@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<link href='style.css' rel='stylesheet' type='text/css'>
+	<title>IFTTT Settings</title>
+	<script src="espWebSrv.js"></script>
+</head>
+<body style = "background-color: #0072be" onload="getDeviceInfo('confIFTTT')">
+	<iframe id="navBarMenu" src="navbar.html" class="navBar"></iframe>
+	<div id="main">
+		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
+		<br><center>
+		<form action="setData" method="post">
+		<table  id="confIFTTT" border=1 cellpadding=5>
+		<button id="saveBtn" name="saveIFTTTConf" value="Save">Save</button>
+		&nbsp;
+		<button id="cancelBtn" name="cancelIFTTTConf" value="Cancel">Cancel</button>
+		</table>
+		</form>
+		</center>
+	</div>
+</body>
+</html>
