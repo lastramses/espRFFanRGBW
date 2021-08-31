@@ -62,7 +62,7 @@ uint8_t isLocTi(uint8_t day, uint8_t hour, uint8_t minute){
 
   uint8_t stTiChk=0x0;
   
-  if ((day&tiNow->tm_wday) > 0)
+  if (day==tiNow->tm_wday)
     stTiChk |= 0b0001;
   if (hour==tiNow->tm_hour)
     stTiChk |= 0b0010;
