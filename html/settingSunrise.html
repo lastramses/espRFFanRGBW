@@ -20,46 +20,48 @@
 			xmlhttp.send(tableId);
 		}
 		function populateSunriseDataTable(inArray){
-			if (inArray[0].Data==170) //stSunriseSimAct
-				document.getElementById(inArray[0].Field).checked = true;
-			else
-				document.getElementById(inArray[0].Field).checked = false;
-			if ((inArray[1].Data&0b00000010)>0)
-				document.getElementById("stDayMonEna").checked = true;
-			else
-				document.getElementById("stDayMonEna").checked = false;
-			if ((inArray[1].Data&0b00000100)>0)
-				document.getElementById("stDayTueEna").checked = true;
-			else
-				document.getElementById("stDayTueEna").checked = false;
-			if ((inArray[1].Data&0b00001000)>0)
-				document.getElementById("stDayWedEna").checked = true;
-			else
-				document.getElementById("stDayWedEna").checked = false;
-			if ((inArray[1].Data&0b00010000)>0)
-				document.getElementById("stDayThuEna").checked = true;
-			else
-				document.getElementById("stDayThuEna").checked = false;
-			if ((inArray[1].Data&0b00100000)>0)
-				document.getElementById("stDayFriEna").checked = true;
-			else
-				document.getElementById("stDayFriEna").checked = false;
-			if ((inArray[1].Data&0b01000000)>0)
-				document.getElementById("stDaySatEna").checked = true;
-			else
-				document.getElementById("stDaySatEna").checked = false;
-			if ((inArray[1].Data&0b00000001)>0)
-				document.getElementById("stDaySunEna").checked = true;
-			else
-				document.getElementById("stDaySunEna").checked = false;
-			var hr = inArray[2].Data;
-			var mint = inArray[3].Data;
-			document.getElementById("tiSunriseSimStartTime").value = hr.substring(hr.length-2) + ":" + mint.substring(mint.length-2);
-			document.getElementById("tiRampOnDurMin").value = inArray[4].Data;
-			document.getElementById("tiStayOnDurMin").value = inArray[5].Data;
-			document.getElementById("rgbRampEnd").value = inArray[6].Data;
-			document.getElementById("rgbEnd").value = inArray[7].Data;
+			for (iSunRiseConf=0;iSunRiseConf<3;++iSunRiseConf){
+				if (inArray[0+iSunRiseConf*8].Data==170) //stSunriseSimAct
+					document.getElementById(inArray[0+iSunRiseConf*8].Field).checked = true;
+				else
+					document.getElementById(inArray[0+iSunRiseConf*8].Field).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b00000010)>0)
+					document.getElementById("stDayMonEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDayMonEna"+iSunRiseConf).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b00000100)>0)
+					document.getElementById("stDayTueEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDayTueEna"+iSunRiseConf).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b00001000)>0)
+					document.getElementById("stDayWedEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDayWedEna"+iSunRiseConf).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b00010000)>0)
+					document.getElementById("stDayThuEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDayThuEna"+iSunRiseConf).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b00100000)>0)
+					document.getElementById("stDayFriEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDayFriEna"+iSunRiseConf).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b01000000)>0)
+					document.getElementById("stDaySatEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDaySatEna"+iSunRiseConf).checked = false;
+				if ((inArray[1+iSunRiseConf*8].Data&0b00000001)>0)
+					document.getElementById("stDaySunEna"+iSunRiseConf).checked = true;
+				else
+					document.getElementById("stDaySunEna"+iSunRiseConf).checked = false;
+				var hr = inArray[2+iSunRiseConf*8].Data;
+				var mint = inArray[3+iSunRiseConf*8].Data;
+				document.getElementById("tiSunriseSimStartTime"+iSunRiseConf).value = hr.substring(hr.length-2) + ":" + mint.substring(mint.length-2);
+				document.getElementById("tiRampOnDurMin"+iSunRiseConf).value = inArray[4+iSunRiseConf*8].Data;
+				document.getElementById("tiStayOnDurMin"+iSunRiseConf).value = inArray[5+iSunRiseConf*8].Data;
+				document.getElementById("rgbRampEnd"+iSunRiseConf).value = inArray[6+iSunRiseConf*8].Data;
+				document.getElementById("rgbEnd"+iSunRiseConf).value = inArray[7+iSunRiseConf*8].Data;
 		}
+	}
 		
 		function btnTestClick(){
 			xmlhttp = new XMLHttpRequest();
@@ -82,63 +84,172 @@
 		<button id="navBarBtn" class="navBarBtn" onclick="openNavBar()">&#9776;</button>
 		<center>
 		<form action="setData" method="post">
-		<table border=1 id="sunriseConf">
-		<tr>
-			<td>Sunrise </td>
-			<td>
-				<label class="switch">
-				<input type="checkbox" id="stSunriseSimAct" name="stSunriseSimAct" >
-				<span class="slider round"></span>
-				</label>
-			</td>
+		<table border=1 cellspacing=3>
+		<tr><td>
+			<table border=1 id="sunriseConf0">
+			<tr>
+				<td>Sunrise #1</td>
+				<td>
+					<label class="switch">
+					<input type="checkbox" id="stSunriseSimAct0" name="stSunriseSimAct0" >
+					<span class="slider round"></span>
+					</label>
+				</td>
+			</td></tr>
+			<tr>
+				<td colspan=2>
+					<div class="weekDays-selector">
+						<input type="checkbox" id="stDayMonEna0" name="stDayMonEna0" class="weekday" />
+						<label for="stDayMonEna0">M</label>
+						<input type="checkbox" id="stDayTueEna0" name="stDayTueEna0" class="weekday" />
+						<label for="stDayTueEna0">T</label>
+						<input type="checkbox" id="stDayWedEna0" name="stDayWedEna0" class="weekday" />
+						<label for="stDayWedEna0">W</label>
+						<input type="checkbox" id="stDayThuEna0" name="stDayThuEna0" class="weekday" />
+						<label for="stDayThuEna0">T</label>
+						<input type="checkbox" id="stDayFriEna0" name="stDayFriEna0" class="weekday" />
+						<label for="stDayFriEna0">F</label>
+						<input type="checkbox" id="stDaySatEna0" name="stDaySatEna0" class="weekday" />
+						<label for="stDaySatEna0">S</label>
+						<input type="checkbox" id="stDaySunEna0" name="stDaySunEna0" class="weekday" />
+						<label for="stDaySunEna0">S</label>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Start Time</td>
+				<td><input type="time" id="tiSunriseSimStartTime0" name="tiSunriseSimStartTime0" value="13:30" required></td>
+			</tr>
+			<tr>
+				<td>Ramp On Duration</td>
+				<td><input type="number" style="width:60px" id="tiRampOnDurMin0" name="tiRampOnDurMin0" min="0" max="120" value="20" required>min</td>
+			</tr>
+			<tr>
+				<td>Stay On Duration</td>
+				<td><input type="number" style="width:60px" id="tiStayOnDurMin0" name="tiStayOnDurMin0" min="0" max="120" value="10" required>min</td>
+			</tr>
+			<tr>
+				<td>Mid Colour</td>
+				<td><input type="color" id="rgbRampEnd0" name="rgbRampEnd0" value="#c45733"></td>
+			</tr>
+			<tr>
+				<td>End Colour</td>
+				<td><input type="color" id="rgbEnd0" name="rgbEnd0" value="#ff8e2b"></td>
+			</tr>
+			</table>
 		</tr>
-		<tr>
-			<td colspan=2>
-				<div class="weekDays-selector">
-					<input type="checkbox" id="stDayMonEna" name="stDayMonEna" class="weekday" />
-					<label for="stDayMonEna">M</label>
-					<input type="checkbox" id="stDayTueEna" name="stDayTueEna" class="weekday" />
-					<label for="stDayTueEna">T</label>
-					<input type="checkbox" id="stDayWedEna" name="stDayWedEna" class="weekday" />
-					<label for="stDayWedEna">W</label>
-					<input type="checkbox" id="stDayThuEna" name="stDayThuEna" class="weekday" />
-					<label for="stDayThuEna">T</label>
-					<input type="checkbox" id="stDayFriEna" name="stDayFriEna" class="weekday" />
-					<label for="stDayFriEna">F</label>
-					<input type="checkbox" id="stDaySatEna" name="stDaySatEna" class="weekday" />
-					<label for="stDaySatEna">S</label>
-					<input type="checkbox" id="stDaySunEna" name="stDaySunEna" class="weekday" />
-					<label for="stDaySunEna">S</label>
-				</div>
-			</td>
-			
-		</tr>
-		<tr>
-			<td>Start Time</td>
-			<td><input type="time" id="tiSunriseSimStartTime" name="tiSunriseSimStartTime" value="13:30" required></td>
-		</tr>
-		<tr>
-			<td>Ramp On Duration</td>
-			<td><input type="number" style="width:60px" id="tiRampOnDurMin" name="tiRampOnDurMin" min="0" max="120" value="20" required>min</td>
-		</tr>
-		<tr>
-			<td>Stay On Duration</td>
-			<td><input type="number" style="width:60px" id="tiStayOnDurMin" name="tiStayOnDurMin" min="0" max="120" value="10" required>min</td>
-		</tr>
-		<tr>
-			<td>Mid Colour</td>
-			<td><input type="color" id="rgbRampEnd" name="rgbRampEnd" value="#c45733"></td>
-		</tr>
-		<tr>
-			<td>End Colour</td>
-			<td><input type="color" id="rgbEnd" name="rgbEnd" value="#ff8e2b"></td>
+		<tr><td>
+			<table border=1 id="sunriseConf1">
+			<tr>
+				<td>Sunrise #2</td>
+				<td>
+					<label class="switch">
+					<input type="checkbox" id="stSunriseSimAct1" name="stSunriseSimAct1" >
+					<span class="slider round"></span>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<div class="weekDays-selector">
+						<input type="checkbox" id="stDayMonEna1" name="stDayMonEna1" class="weekday" />
+						<label for="stDayMonEna1">M</label>
+						<input type="checkbox" id="stDayTueEna1" name="stDayTueEna1" class="weekday" />
+						<label for="stDayTueEna1">T</label>
+						<input type="checkbox" id="stDayWedEna1" name="stDayWedEna1" class="weekday" />
+						<label for="stDayWedEna1">W</label>
+						<input type="checkbox" id="stDayThuEna1" name="stDayThuEna1" class="weekday" />
+						<label for="stDayThuEna1">T</label>
+						<input type="checkbox" id="stDayFriEna1" name="stDayFriEna1" class="weekday" />
+						<label for="stDayFriEna1">F</label>
+						<input type="checkbox" id="stDaySatEna1" name="stDaySatEna1" class="weekday" />
+						<label for="stDaySatEna1">S</label>
+						<input type="checkbox" id="stDaySunEna1" name="stDaySunEna1" class="weekday" />
+						<label for="stDaySunEna1">S</label>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Start Time</td>
+				<td><input type="time" id="tiSunriseSimStartTime1" name="tiSunriseSimStartTime1" value="13:30" required></td>
+			</tr>
+			<tr>
+				<td>Ramp On Duration</td>
+				<td><input type="number" style="width:60px" id="tiRampOnDurMin1" name="tiRampOnDurMin1" min="0" max="120" value="20" required>min</td>
+			</tr>
+			<tr>
+				<td>Stay On Duration</td>
+				<td><input type="number" style="width:60px" id="tiStayOnDurMin1" name="tiStayOnDurMin1" min="0" max="120" value="10" required>min</td>
+			</tr>
+			<tr>
+				<td>Mid Colour</td>
+				<td><input type="color" id="rgbRampEnd1" name="rgbRampEnd1" value="#c45733"></td>
+			</tr>
+			<tr>
+				<td>End Colour</td>
+				<td><input type="color" id="rgbEnd1" name="rgbEnd1" value="#ff8e2b"></td>
+			</tr>
+			</table>
+		</td></tr>
+		<tr><td>
+			<table border=1 id="sunriseConf2">
+			<tr>
+				<td>Sunrise #3</td>
+				<td>
+					<label class="switch">
+					<input type="checkbox" id="stSunriseSimAct2" name="stSunriseSimAct2" >
+					<span class="slider round"></span>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<div class="weekDays-selector">
+						<input type="checkbox" id="stDayMonEna2" name="stDayMonEna2" class="weekday" />
+						<label for="stDayMonEna2">M</label>
+						<input type="checkbox" id="stDayTueEna2" name="stDayTueEna2" class="weekday" />
+						<label for="stDayTueEna2">T</label>
+						<input type="checkbox" id="stDayWedEna2" name="stDayWedEna2" class="weekday" />
+						<label for="stDayWedEna2">W</label>
+						<input type="checkbox" id="stDayThuEna2" name="stDayThuEna2" class="weekday" />
+						<label for="stDayThuEna2">T</label>
+						<input type="checkbox" id="stDayFriEna2" name="stDayFriEna2" class="weekday" />
+						<label for="stDayFriEna2">F</label>
+						<input type="checkbox" id="stDaySatEna2" name="stDaySatEna2" class="weekday" />
+						<label for="stDaySatEna2">S</label>
+						<input type="checkbox" id="stDaySunEna2" name="stDaySunEna2" class="weekday" />
+						<label for="stDaySunEna2">S</label>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Start Time</td>
+				<td><input type="time" id="tiSunriseSimStartTime2" name="tiSunriseSimStartTime2" value="13:30" required></td>
+			</tr>
+			<tr>
+				<td>Ramp On Duration</td>
+				<td><input type="number" style="width:60px" id="tiRampOnDurMin2" name="tiRampOnDurMin2" min="0" max="120" value="20" required>min</td>
+			</tr>
+			<tr>
+				<td>Stay On Duration</td>
+				<td><input type="number" style="width:60px" id="tiStayOnDurMin2" name="tiStayOnDurMin2" min="0" max="120" value="10" required>min</td>
+			</tr>
+			<tr>
+				<td>Mid Colour</td>
+				<td><input type="color" id="rgbRampEnd2" name="rgbRampEnd2" value="#c45733"></td>
+			</tr>
+			<tr>
+				<td>End Colour</td>
+				<td><input type="color" id="rgbEnd2" name="rgbEnd2" value="#ff8e2b"></td>
+			</tr>
+			</table>
 		</tr>
 		<tr>
 			<td colspan=2><center>
 				<button id="saveBtn" name="saveSunriseConf" value="Save">Save</button>
 				<button id="cancelBtn" name="saveSunriseConf" value="Cancel">Cancel</button>
 			</center></td>
-		</tr>
+		</td></tr>
 		</table>
 		</form>
 		<br>

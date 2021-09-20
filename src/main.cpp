@@ -29,7 +29,7 @@ LogCircBuffer<2048> logTelnetBuff;
 uint8_t stTick60Req = fsFALSE;
 uint8_t stTick1Req = fsFALSE;
 
-SunriseSim sunriseSim;
+SunriseSim sunriseSim[3];
 ioISRDbnc isrIODbnc[2];
 uint8_t stRGBWAct = fsOFF;
 uint8_t stReloadFS = fsFALSE;
@@ -48,7 +48,7 @@ uint8_t TIFTTTThrdReq = 50; //degC
 RFFan rfFan[2];
 IFTTTCom iftttCom[2];
 
-void ICACHE_RAM_ATTR isrIFTTT(){
+void IRAM_ATTR isrIFTTT(){
 	/*detachInterrupt(digitalPinToInterrupt(pinIFTTT));
 	stISREna[2] = fsFALSE;
 	tiISRDis[2] = millis();
@@ -57,7 +57,7 @@ void ICACHE_RAM_ATTR isrIFTTT(){
 	isrIODbnc[0].reqISR();
 }
 
-void ICACHE_RAM_ATTR isrRFLight(){
+void IRAM_ATTR isrRFLight(){
 	/*detachInterrupt(digitalPinToInterrupt(pinRFLight));
 	stISREna[3] = fsFALSE;
 	tiISRDis[3] = millis();
@@ -67,8 +67,11 @@ void ICACHE_RAM_ATTR isrRFLight(){
 }
 
 void isrTick1sFunc(){
-	if (sunriseSim.isActive()==fsTRUE)
-		stTick1Req = fsTRUE;
+	for (uint8_t iSunRiseConf = 0; iSunRiseConf < sizeof(sunriseSim)/sizeof(sunriseSim[0]); ++iSunRiseConf)
+	{
+		if (sunriseSim[iSunRiseConf].isActive()==fsTRUE)
+			stTick1Req = fsTRUE;
+	}
 }
 
 void isrTick60sFunc(){
@@ -157,28 +160,31 @@ void confFS(){
 		}
 		configFile = LittleFS.open("/configSunrise.dat", "r");
 		if (configFile){
-			uint8_t stSunriseSimAct = configFile.read();
-			uint8_t tiSunriseDaysAct = configFile.read();
-			uint8_t tiHrStrt = configFile.read();
-			uint8_t tiMinStrt = configFile.read();
-			uint8_t tiRampOnDur = configFile.read();
-			uint8_t tiStayOnDur = configFile.read();
-			uint32_t hslRampEnd = configFile.read() + (configFile.read()<<16) + 
-				(configFile.read()<<8) + (configFile.read()); //TODO: is this correct?
-			uint32_t hslEnd = configFile.read() + (configFile.read()<<16) + 
-				(configFile.read()<<8) + (configFile.read());
-			stdOut("Loading /configSunriseSim.dat:");
-			stdOut(" stSunriseSimAct=" + String(stSunriseSimAct));
-			stdOut(" tiSunriseDaysAct=" + String(tiSunriseDaysAct));
-			stdOut(" tiHrStrt=" + String(tiHrStrt));
-			stdOut(" tiMinStrt=" + String(tiMinStrt));
-			stdOut(" tiRampOnDur=" + String(tiRampOnDur));
-			stdOut(" tiStayOnDur=" + String(tiStayOnDur));
-			stdOut(" hslRampEnd=" + String(hslRampEnd));
-			stdOut(" hslEnd=" + String(hslEnd));
-			SunriseSim tmpConfig(stSunriseSimAct,tiSunriseDaysAct,tiHrStrt,
-			tiMinStrt,tiRampOnDur, tiStayOnDur,hslRampEnd, hslEnd);
-			sunriseSim.updateConf(&tmpConfig);
+			for (uint8_t iSunRiseConf = 0; iSunRiseConf < sizeof(sunriseSim)/sizeof(sunriseSim[0]); ++iSunRiseConf)
+			{
+				uint8_t stSunriseSimAct = configFile.read();
+				uint8_t tiSunriseDaysAct = configFile.read();
+				uint8_t tiHrStrt = configFile.read();
+				uint8_t tiMinStrt = configFile.read();
+				uint8_t tiRampOnDur = configFile.read();
+				uint8_t tiStayOnDur = configFile.read();
+				uint32_t hslRampEnd = configFile.read() + (configFile.read()<<16) + 
+					(configFile.read()<<8) + (configFile.read());
+				uint32_t hslEnd = configFile.read() + (configFile.read()<<16) + 
+					(configFile.read()<<8) + (configFile.read());
+				stdOut("Loading /configSunriseSim.dat:");
+				stdOut(" stSunriseSimAct=" + String(stSunriseSimAct));
+				stdOut(" tiSunriseDaysAct=" + String(tiSunriseDaysAct));
+				stdOut(" tiHrStrt=" + String(tiHrStrt));
+				stdOut(" tiMinStrt=" + String(tiMinStrt));
+				stdOut(" tiRampOnDur=" + String(tiRampOnDur));
+				stdOut(" tiStayOnDur=" + String(tiStayOnDur));
+				stdOut(" hslRampEnd=" + String(hslRampEnd));
+				stdOut(" hslEnd=" + String(hslEnd));
+				SunriseSim tmpConfig(stSunriseSimAct,tiSunriseDaysAct,tiHrStrt,
+				tiMinStrt,tiRampOnDur, tiStayOnDur,hslRampEnd, hslEnd);
+				sunriseSim[iSunRiseConf].updateConf(&tmpConfig);
+			}
 		}
 		configFile = LittleFS.open("/configRF.dat", "r");
 		if (configFile){
@@ -268,7 +274,7 @@ void configHttpServer(){
 	httpServer.on("/getData", HTTP_POST,httpServerHandleGetData);
 	httpServer.on("/setData", HTTP_POST,httpServerHandleSetData);
 	httpServer.on("/sunriseSimTest",HTTP_POST,[](){
-		sunriseSim.Start();
+		sunriseSim[0].Start();
 		httpServer.send(200, "text/plain", "{\"sunrise simulation started\"}");
 	});
 	httpServer.on("/fileupload", HTTP_GET, httpServerHandleFileUpload);
@@ -290,7 +296,7 @@ void configHttpServer(){
 	stdOut("telnet server started on port 23!");
 }
 
-void ICACHE_RAM_ATTR telnetProcess(){
+void IRAM_ATTR telnetProcess(){
 	if (telnetServer.hasClient()) {
 		if (!telnetClient) { // equivalent to !serverClients[i].connected()
 			telnetClient = telnetServer.available();
@@ -423,9 +429,12 @@ bool minTurnFlag(){
 			iftttCom[1].send((int)bme280.readTemperature());//sendIFTTTCmd();
 		if ((ctrMin%5)==0)
 			printTiLocNow();
-		if (sunriseSim.getStSunriseSimEna()==fsTRUE && isLocTi(sunriseSim.getTiSunriseDaysEna(),
-			sunriseSim.getTiSunriseHrStrt(),sunriseSim.getTiSunriseMinStrt())==fsTRUE){
-			sunriseSim.Start();
+		for (uint8_t iSunRiseConf = 0; iSunRiseConf < sizeof(sunriseSim)/sizeof(sunriseSim[0]); ++iSunRiseConf)
+		{
+			if (sunriseSim[iSunRiseConf].getStSunriseSimEna()==fsTRUE && isLocTi(sunriseSim[iSunRiseConf].getTiSunriseDaysEna(),
+				sunriseSim[iSunRiseConf].getTiSunriseHrStrt(),sunriseSim[iSunRiseConf].getTiSunriseMinStrt())==fsTRUE){
+				sunriseSim[iSunRiseConf].Start();
+			}
 		}
 	}
 	//TODO: check if time is greater than curent time and force rgbw=0
@@ -433,7 +442,11 @@ bool minTurnFlag(){
 }
 
 void secTurnFlag(){
-	sunriseSim.incrementSecond();
+	for (uint8_t iSunRiseConf = 0; iSunRiseConf < sizeof(sunriseSim)/sizeof(sunriseSim[0]); ++iSunRiseConf)
+	{
+		if (sunriseSim[iSunRiseConf].isActive()==fsTRUE)
+			sunriseSim[iSunRiseConf].incrementSecond();
+	}
 	stTick1Req = fsFALSE;
 }
 

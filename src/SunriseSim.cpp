@@ -266,7 +266,7 @@ uint32_t SunriseSim::rgb2hsl(uint32_t rgbColor){
   if (delta==0)
     tmpSaturation=0;
   else
-    tmpSaturation=delta/max(1-fabs(2*tmpLightness-1),(double)1);
+    tmpSaturation=delta/max(1-fabs(2*tmpLightness-1),(float)1);
   
   colorSaturation = tmpSaturation*255;
   //stdOut("rgb2hsl");

@@ -37,14 +37,14 @@ extern EspSaveCrash saveCrash;
 extern LogCircBuffer<2048> logTelnetBuff;
 extern String espHost;
 extern RFFan rfFan[2];
-extern SunriseSim sunriseSim;
+extern SunriseSim sunriseSim[3];
 extern IFTTTCom iftttCom[2];
 extern uint8_t stRGBWAct;
 extern time_t tiEspStrt;
 extern uint8_t stReloadFS;
 
 // identifier-undefined: tzset setenv
-_VOID _EXFUN(tzset,(_VOID));
-int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
+//_VOID _EXFUN(tzset,(_VOID));
+//int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
 
 #endif
