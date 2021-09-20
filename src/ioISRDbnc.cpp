@@ -47,7 +47,7 @@ uint8_t ioISRDbnc::stIsr(){
 }
 
 uint8_t ioISRDbnc::Dbnc(){
-    if ((stISRDbncAct==fsTRUE) && (abs(millis()-tiISRDis)>tiISRDbncMsec)){
+    if ((stISRDbncAct==fsTRUE) && (abs((long)(millis()-tiISRDis))>tiISRDbncMsec)){
         stISRDbncAct = fsFALSE; 
         attachInterrupt(digitalPinToInterrupt(pinISR),fcnISR, typISR);
     }
