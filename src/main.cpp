@@ -106,7 +106,7 @@ void confPins(){
 	//pinMode(gpio23, INPUT);
 	//isrIODbnc[0] = ioISRDbnc(gpio22,CHANGE,isrSetIO22,1000);
 	//isrIODbnc[1] = ioISRDbnc(gpio23,PULLUP,isrSetIO23,1000);
-
+	analogWriteRange(1023);
 	pinMode(pinRED,OUTPUT);
 	analogWrite(pinRED,0); //10bit pwm
 	pinMode(pinGREEN,OUTPUT);
